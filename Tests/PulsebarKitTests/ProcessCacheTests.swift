@@ -9,18 +9,13 @@ struct ProcessCacheTests {
     var cache = ProcessCache<String>()
     var calls = 0
     for _ in 1...3 {
-      _ = cache.value(for: first) {
+      let value = cache.value(for: first) {
         calls += 1
-        return "node"
+        return "node \(calls)"
       }
+      #expect(value == "node 1")
     }
     #expect(calls == 1)
-  }
-
-  @Test func returnsTheFirstValue() {
-    var cache = ProcessCache<String>()
-    _ = cache.value(for: first) { "zsh" }
-    #expect(cache.value(for: first) { "node" } == "zsh")
   }
 
   @Test func whenPidIsReusedComputesAgain() {
@@ -29,16 +24,10 @@ struct ProcessCacheTests {
     #expect(cache.value(for: reused) { "node" } == "node")
   }
 
-  @Test func cachesMissingValues() {
-    var cache = ProcessCache<String?>()
-    var calls = 0
-    for _ in 1...2 {
-      _ = cache.value(for: first) {
-        calls += 1
-        return nil
-      }
-    }
-    #expect(calls == 1)
+  @Test func retriesMissingValues() {
+    var cache = ProcessCache<String>()
+    _ = cache.value(for: first) { nil }
+    #expect(cache.value(for: first) { "node" } == "node")
   }
 
   @Test func retainDropsExitedProcesses() {

@@ -4,10 +4,12 @@ import SwiftUI
 
 struct MenuBarLabel: View {
   let stats: Stats?
+  @Environment(\.colorScheme) private var colorScheme
 
   var body: some View {
     Image(
       nsImage: MenuBarImage.make(
+        colorScheme: colorScheme,
         pressure: stats?.memory?.pressure,
         readings: [
           MenuBarReading(
@@ -27,25 +29,28 @@ struct MenuBarReading: Equatable, Sendable {
 
 @MainActor
 enum MenuBarImage {
-  private struct Key: Equatable {
-    let pressure: PressureLevel?
-    let readings: [MenuBarReading]
-  }
-
   private static let height: CGFloat = 16
   private static let dotSize: CGFloat = 8
   private static let symbolGap: CGFloat = 3
   private static let readingGap: CGFloat = 8
   private static let widestValue = "100%"
 
-  private static var last: (key: Key, image: NSImage)?
+  private static var last:
+    (
+      colorScheme: ColorScheme, pressure: PressureLevel?, readings: [MenuBarReading], image: NSImage
+    )?
   private static var slotWidths: [String: CGFloat] = [:]
 
-  static func make(pressure: PressureLevel?, readings: [MenuBarReading]) -> NSImage {
-    let key = Key(pressure: pressure, readings: readings)
-    if let last, last.key == key { return last.image }
+  static func make(
+    colorScheme: ColorScheme, pressure: PressureLevel?, readings: [MenuBarReading]
+  ) -> NSImage {
+    if let last,
+      (last.colorScheme, last.pressure, last.readings) == (colorScheme, pressure, readings)
+    {
+      return last.image
+    }
     let image = draw(pressure: pressure, readings: readings)
-    last = (key, image)
+    last = (colorScheme, pressure, readings, image)
     return image
   }
 

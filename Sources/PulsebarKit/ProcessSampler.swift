@@ -10,9 +10,9 @@ struct ProcessSampler {
   private let home = FileManager.default.homeDirectoryForCurrentUser.path
   private var previousTicks: [ProcessID: UInt64] = [:]
   private var previousTime: Double?
-  private var identities = ProcessCache<AppIdentity?>()
+  private var identities = ProcessCache<AppIdentity>()
   private var roles = ProcessCache<String>()
-  private var startDates = ProcessCache<Date?>()
+  private var startDates = ProcessCache<Date>()
 
   init() {
     var timebase = mach_timebase_info()
@@ -30,7 +30,10 @@ struct ProcessSampler {
       let id = ProcessID(pid: pid, startTime: usage.ri_proc_start_abstime)
       let ticks = usage.ri_user_time + usage.ri_system_time
       currentTicks[id] = ticks
-      guard let app = identities.value(for: id, { Self.identity(pid) }) else { continue }
+      let app =
+        previousTicks[id] == nil
+        ? Self.identity(pid) : identities.value(for: id) { Self.identity(pid) }
+      guard let app else { continue }
       let ticksPerSecond = CounterRate.perSecond(
         previous: previousTicks[id], current: ticks, interval: interval)
       processes.append(
@@ -79,7 +82,7 @@ struct ProcessSampler {
       return Self.workingDirectory(process.id.pid).map { PathAbbreviation.short($0, home: home) }
         ?? process.app.name
     }
-    return roles.value(for: process.id) { Self.role(process.id.pid) ?? process.app.name }
+    return roles.value(for: process.id) { Self.role(process.id.pid) } ?? process.app.name
   }
 
   private static func role(_ pid: pid_t) -> String? {

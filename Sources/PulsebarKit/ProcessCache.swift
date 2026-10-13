@@ -3,7 +3,7 @@ public struct ProcessCache<Value> {
 
   public init() {}
 
-  public mutating func value(for id: ProcessID, _ make: () -> Value) -> Value {
+  public mutating func value(for id: ProcessID, _ make: () -> Value?) -> Value? {
     if let value = values[id] { return value }
     let value = make()
     values[id] = value

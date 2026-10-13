@@ -87,8 +87,14 @@ final class StatsStore {
       if isPopoverOpen || panel.stats?.apps.contains(where: { $0.app.isDocker }) == true {
         await refreshDockerIfStale()
       }
-      try? await Task.sleep(for: .seconds(Self.dockerInterval), tolerance: .seconds(1))
+      try? await Task.sleep(for: .seconds(nextDockerPoll), tolerance: .seconds(1))
     }
+  }
+
+  private var nextDockerPoll: Double {
+    guard let lastDockerPoll else { return Self.dockerInterval }
+    let elapsed = ProcessInfo.processInfo.systemUptime - lastDockerPoll
+    return elapsed < Self.dockerInterval ? Self.dockerInterval - elapsed : Self.dockerInterval
   }
 
   private func refreshDockerIfStale() async {
