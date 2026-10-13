@@ -47,7 +47,7 @@ spacing:
   panel: "14px"
 components:
   popover:
-    width: "340px"
+    width: "425px"
     padding: "{spacing.panel}"
   track-row:
     height: "40px"
@@ -76,7 +76,7 @@ components:
 
 **Creative North Star: "The Shared Axis"**
 
-One 340 pt panel, read top to bottom as a verdict, then a timeline, then the culprits. Every metric is a track on the same 5-minute axis, so a spike in one lines up with the others. The world is native macOS and nothing else: SF Pro, monospaced digits, semantic system colors, SF Symbols, AppKit separators. Depth, chrome and decoration are left to the system window.
+One 425 pt panel, read top to bottom as a verdict, then a timeline, then the culprits. Every metric is a track on the same 5-minute axis, so a spike in one lines up with the others. The world is native macOS and nothing else: SF Pro, monospaced digits, semantic system colors, SF Symbols, AppKit separators. Depth, chrome and decoration are left to the system window.
 
 Density is high but quiet. Color is spent only on data: one accent per track, and the pressure color wherever pressure is shown. All chrome is gray.
 
@@ -134,7 +134,7 @@ Semantic system colors only. Hex values are the light-appearance `NSColor` resol
 
 ## Layout
 
-Single fixed column, 340 pt wide, 14 pt padding, no scrolling. Vertical rhythm: 12 pt between sections, 8 pt inside the header group, 6 pt between tracks, 2 pt between app rows, 3 pt micro gaps.
+Single fixed column, 425 pt wide, 14 pt padding, no scrolling. Vertical rhythm: 12 pt between sections, 8 pt inside the header group, 6 pt between tracks, 2 pt between app rows, 3 pt micro gaps.
 
 Every track row is three columns: label (50 pt, leading), graph (flexible), value (84 pt, trailing), 8 pt gutters, 40 pt tall. The time ruler ("5 min" … "now") reuses the same column widths so it sits under the graphs. Minute ticks fall at 1–4 minutes ago (every 30 samples of a 150-sample buffer). History fills from the right; before 5 minutes elapse, the left of the plot is empty grid.
 
@@ -142,14 +142,16 @@ Single-direction tracks (Pressure, CPU) grow up from a bottom baseline. Two-way 
 
 Apps list: chevron (9 pt) · icon (16 pt) · name with "×N" process count · growth badge · memory (64 pt) · CPU (40 pt), right-aligned numeric columns, 6 pt row inset. Expanded detail lines are indented to the name column and share the memory and CPU columns.
 
-Footer: "Updated every 2 s" left; `gearshape` borderless button (Settings, ⌘,) and small Quit button (⌘Q) right.
+Footer: "Updated every 2 s" left; `waveform.path.ecg.rectangle` borderless button (Activity Monitor, ⌘M), `gearshape` borderless button (Settings, ⌘,) and `power` borderless button (Quit, ⌘Q) right.
 
 ## Elevation & Depth
 
 Flat. No shadows, materials, glass or gradients inside the panel; the only depth is the system `MenuBarExtra` window. Separation comes from `Divider()` rules and spacing. Area fills under graph lines are translucent tints of the track hue (28%, 50% under increased contrast), not shading.
 
 ### Named Rules
-**The Window Is The Only Surface Rule.** No cards or inset panels. Groups are separated by space and hairline dividers.
+**The Window Is The Only Surface Rule.** No cards or inset panels inside the panel. Groups are separated by space and hairline dividers.
+
+**Server cards.** Homelab servers are the one exception, and sit outside the panel: one window under it holding a deck of 30 pt glimpse strips (dot, name, CPU, RAM, VRAM, uptime), as wide as the panel, using the panel's own material, corner radius and outline, each 5 pt below the panel or the card above, with the system window shadow. Hovering a strip opens that card downward in place, pushing the others down; leaving closes it.
 
 ## Shapes
 
@@ -188,7 +190,7 @@ SwiftUI `Settings` scene, `Form` with `.formStyle(.grouped)`, 420 pt wide, heigh
 Pressure dot (non-template 8 pt image, keeps its color), `memorychip` SF Symbol, memory %, `cpu` SF Symbol, CPU %. Symbols render monochrome (menu bar template tint); padding sits before each symbol. Whole percent, figure-space padded, tabular digits.
 
 ### Buttons
-System Quit button (`.controlSize(.small)`), borderless `gearshape` Settings button, link-style "Open in Activity Monitor". No custom button styling.
+Borderless glyph buttons in the footer (`waveform.path.ecg.rectangle` Activity Monitor, `gearshape` Settings, `power` Quit), link-style "Open in Activity Monitor". No custom button styling.
 
 ## Do's and Don'ts
 

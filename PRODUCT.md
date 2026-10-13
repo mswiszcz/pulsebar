@@ -22,6 +22,7 @@ It reports memory the way the kernel judges it — pressure level and `kern.memo
 
 - Lives in the macOS menu bar (SwiftUI `MenuBarExtra`, window style); no Dock icon.
 - Samples every 2 s; disk free space every 30 s.
+- Polls configured homelab servers on the LAN every 10 s in the background, whether or not the panel is open, and every 60 s after 3 consecutive failures. Opening the panel refreshes stale readings. Unreachable servers are simply unreachable away from home.
 - History is kept in memory for about 5 minutes and discarded on quit.
 - Clicking an app row expands its processes; Activity Monitor is one link away.
 - Process details (role, working directory, uptime) are read only while the panel is open. Docker containers are polled every 15 s only while the panel is open or Docker is a top app.
@@ -33,8 +34,9 @@ It reports memory the way the kernel judges it — pressure level and `kern.memo
 - Menu bar label: pressure dot, memory used %, CPU %.
 - Expandable app rows: top 5 processes with role (Chromium/Electron `--type`, Firefox `-contentproc`), working directory for non-bundle tools (`claude`, `node`), uptime. Docker expands to running containers from the Docker Engine API.
 - Growth badge: an app that grew ≥ 500 MB over the last 10 min is flagged on its row.
+- Homelab servers: a panel section with one row per node_exporter server on the LAN (CPU, RAM, VRAM for AMD GPUs, uptime), expandable into 5-minute tracks, load, disk, network and GPU memory. Panel only: the menu bar and notifications stay about this Mac.
 - Pressure alerts: a notification when pressure stays at warning or critical for 10 s, naming the biggest grower or the biggest app. Never on "used %".
-- Settings: launch at login, pressure notifications and their level.
+- Settings: launch at login, pressure notifications and their level, homelab servers.
 - No process killing.
 
 ## Product Principles

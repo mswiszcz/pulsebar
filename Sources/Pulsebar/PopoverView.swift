@@ -1,3 +1,4 @@
+import AppKit
 import PulsebarKit
 import SwiftUI
 
@@ -5,6 +6,7 @@ struct PopoverView: View {
   let model: PanelModel
   @Binding var expandedApp: AppIdentity?
   var onVisibilityChange: (Bool) -> Void = { _ in }
+  var onWindowChange: (NSWindow?) -> Void = { _ in }
 
   @Environment(\.openSettings) private var openSettings
 
@@ -44,6 +46,13 @@ struct PopoverView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
         Spacer()
+        Button(action: ActivityMonitor.open) {
+          Image(systemName: "waveform.path.ecg.rectangle")
+        }
+        .buttonStyle(.borderless)
+        .keyboardShortcut("m")
+        .help("Open Activity Monitor (⌘M)")
+        .accessibilityLabel("Open Activity Monitor")
         Button(action: showSettings) {
           Image(systemName: "gearshape")
         }
@@ -51,16 +60,23 @@ struct PopoverView: View {
         .keyboardShortcut(",")
         .help("Settings")
         .accessibilityLabel("Settings")
-        Button("Quit") { NSApplication.shared.terminate(nil) }
-          .keyboardShortcut("q")
-          .controlSize(.small)
+        Button {
+          NSApplication.shared.terminate(nil)
+        } label: {
+          Image(systemName: "power")
+        }
+        .buttonStyle(.borderless)
+        .keyboardShortcut("q")
+        .help("Quit Pulsebar (⌘Q)")
+        .accessibilityLabel("Quit Pulsebar")
       }
     }
     .padding(14)
-    .frame(width: 340)
+    .frame(width: PanelLayout.width)
     .transaction { $0.disablesAnimations = true }
     .onAppear { onVisibilityChange(true) }
     .onDisappear { onVisibilityChange(false) }
+    .background(PanelWindowReader(onChange: onWindowChange))
   }
 
   private func showSettings() {
@@ -97,10 +113,11 @@ struct PopoverView: View {
       label: "Pressure",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: values, colors: samples.map { ($0.pressure ?? .normal).color })
       ),
-      accessibilityValue: describe(
-        Format.percent(values.last ?? nil), range(values, Format.percent))
+      accessibilityValue: TrackDescription.describe(
+        Format.percent(values.last ?? nil), TrackDescription.range(values, Format.percent))
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         Text(Format.percent(values.last ?? nil))
@@ -114,9 +131,11 @@ struct PopoverView: View {
     return TrackRow(
       label: "CPU",
       graph: TrackGraph(
-        capacity: history.capacity, above: TrackSeries(values: values, color: .blue)),
-      accessibilityValue: describe(
-        Format.percent(stats?.cpuFraction), range(values, Format.percent))
+        capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
+        above: TrackSeries(values: values, color: .blue)),
+      accessibilityValue: TrackDescription.describe(
+        Format.percent(stats?.cpuFraction), TrackDescription.range(values, Format.percent))
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         Text(Format.percent(stats?.cpuFraction))
@@ -131,15 +150,17 @@ struct PopoverView: View {
     let scaled = TrackScale.squareRootNormalized([reads, writes], floor: Self.diskFloor)
     let current =
       "read \(Format.rate(stats?.disk.readRate)), write \(Format.rate(stats?.disk.writeRate))"
-    let window = "read \(range(reads, Format.rate)), write \(range(writes, Format.rate))"
+    let window =
+      "read \(TrackDescription.range(reads, Format.rate)), write \(TrackDescription.range(writes, Format.rate))"
     return TrackRow(
       label: "Disk",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: scaled.series[0], color: .orange),
         below: TrackSeries(values: scaled.series[1], color: .orange),
         scaleLabel: Format.rate(scaled.fullScale)),
-      accessibilityValue: describe(current, window)
+      accessibilityValue: TrackDescription.describe(current, window)
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         DirectionalValue(marker: Text("R"), text: Format.rate(stats?.disk.readRate))
@@ -157,15 +178,17 @@ struct PopoverView: View {
     let scaled = TrackScale.squareRootNormalized([downs, ups], floor: Self.networkFloor)
     let current =
       "down \(Format.rate(stats?.network.downRate)), up \(Format.rate(stats?.network.upRate))"
-    let window = "down \(range(downs, Format.rate)), up \(range(ups, Format.rate))"
+    let window =
+      "down \(TrackDescription.range(downs, Format.rate)), up \(TrackDescription.range(ups, Format.rate))"
     return TrackRow(
       label: "Network",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: scaled.series[0], color: .teal),
         below: TrackSeries(values: scaled.series[1], color: .teal),
         scaleLabel: Format.rate(scaled.fullScale)),
-      accessibilityValue: describe(current, window)
+      accessibilityValue: TrackDescription.describe(current, window)
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         DirectionalValue(
@@ -174,15 +197,5 @@ struct PopoverView: View {
           marker: Text(Image(systemName: "arrow.up")), text: Format.rate(stats?.network.upRate))
       }
     }
-  }
-
-  private func describe(_ current: String, _ window: String) -> String {
-    "\(current), 5-minute range \(window)"
-  }
-
-  private func range(_ values: [Double?], _ format: (Double?) -> String) -> String {
-    let known = values.compactMap { $0 }
-    guard let low = known.min(), let high = known.max() else { return "not available yet" }
-    return "\(format(low))–\(format(high))"
   }
 }

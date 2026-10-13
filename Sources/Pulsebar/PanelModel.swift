@@ -6,4 +6,5 @@ struct PanelModel {
   var growth: [AppIdentity: UInt64] = [:]
   var growthMinutes = 0
   var docker: DockerState = .unknown
+  var servers: [ServerSnapshot] = []
 }

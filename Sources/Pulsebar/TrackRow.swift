@@ -9,10 +9,13 @@ enum TrackLayout {
 
 enum TimelineAxis {
   static let capacity = 150
-  static let samplesPerMinute = 30
+  static let sampleInterval = 2.0
 
-  static func minuteTicks(capacity: Int) -> [(minutesAgo: Int, fraction: CGFloat)] {
+  static func minuteTicks(
+    capacity: Int, sampleInterval: Double
+  ) -> [(minutesAgo: Int, fraction: CGFloat)] {
     let last = capacity - 1
+    let samplesPerMinute = Int(60 / sampleInterval)
     return (1...4).compactMap { minutes in
       let slot = last - minutes * samplesPerMinute
       return slot > 0 ? (minutes, CGFloat(slot) / CGFloat(last)) : nil
@@ -24,6 +27,7 @@ struct TrackRow<Value: View>: View {
   let label: String
   let graph: TrackGraph
   let accessibilityValue: String
+  var height: CGFloat = TrackLayout.graphHeight
   @ViewBuilder let value: Value
 
   var body: some View {
@@ -40,10 +44,22 @@ struct TrackRow<Value: View>: View {
         .minimumScaleFactor(0.85)
         .frame(width: TrackLayout.valueWidth, alignment: .trailing)
     }
-    .frame(height: TrackLayout.graphHeight)
+    .frame(height: height)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(label)
     .accessibilityValue(accessibilityValue)
+  }
+}
+
+enum TrackDescription {
+  static func describe(_ current: String, _ window: String) -> String {
+    "\(current), 5-minute range \(window)"
+  }
+
+  static func range(_ values: [Double?], _ format: (Double?) -> String) -> String {
+    let known = values.compactMap { $0 }
+    guard let low = known.min(), let high = known.max() else { return "not available yet" }
+    return "\(format(low))–\(format(high))"
   }
 }
 

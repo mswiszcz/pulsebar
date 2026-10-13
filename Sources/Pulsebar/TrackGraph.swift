@@ -17,6 +17,7 @@ struct TrackSeries {
 
 struct TrackGraph: View {
   let capacity: Int
+  let sampleInterval: Double
   let above: TrackSeries
   var below: TrackSeries?
   var scaleLabel: String?
@@ -35,7 +36,7 @@ struct TrackGraph: View {
       context.fill(
         Path(CGRect(x: 0, y: baseline - pixel / 2, width: size.width, height: pixel)),
         with: .color(separator))
-      for tick in TimelineAxis.minuteTicks(capacity: capacity) {
+      for tick in TimelineAxis.minuteTicks(capacity: capacity, sampleInterval: sampleInterval) {
         context.fill(
           Path(CGRect(x: size.width * tick.fraction, y: 0, width: pixel, height: size.height)),
           with: .color(separator.opacity(0.35)))

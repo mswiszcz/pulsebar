@@ -4,7 +4,7 @@ tags: [macos, menubar, swift]
 
 # Pulsebar
 
-A small native macOS menu bar utility that shows real system load: memory pressure, the apps using the most memory and CPU, disk and network throughput.
+A small native macOS menu bar utility that shows real system load: memory pressure, the apps using the most memory and CPU, disk and network throughput, and the health of your homelab servers.
 
 The menu bar shows a pressure dot, memory used % and total CPU %, e.g. `● 62% [cpu] 14%`. Click it to open the timeline panel.
 
@@ -41,7 +41,7 @@ Works with the Command Line Tools alone (no Xcode).
 > [!warning] Run tests through `make test`
 > With only the Command Line Tools installed, plain `swift test` builds the tests and then silently runs **zero** of them, because SwiftPM can't find `Testing.framework` on its own. `make test` passes the framework search path and rpath.
 
-Quit from the panel's **Quit** button (⌘Q while it is open). The gear button next to it opens Settings (⌘,).
+The panel footer has three glyph buttons: Activity Monitor (⌘M), Settings (⌘,) and Quit (power symbol, ⌘Q while the panel is open).
 
 ## Settings
 
@@ -50,6 +50,7 @@ Quit from the panel's **Quit** button (⌘Q while it is open). The gear button n
 | Launch at login | off | Registers the app with `SMAppService.mainApp`. If macOS asks for approval, Settings shows a button to System Settings › General › Login Items |
 | Notify when memory is under pressure | on | Posts a notification when pressure stays elevated (see [[#Pressure alerts]]) |
 | Notify at | Warning | **Warning** or **Critical only** |
+| Servers | none | Homelab servers shown as a card deck under the panel. See [[#Homelab servers]] |
 
 > [!important] Login item needs the installed copy
 > Enable *Launch at login* from `~/Applications/Pulsebar.app` (`make install`), not from `build/`. The login item records the path of the copy that registered it, and `make build` replaces `build/Pulsebar.app` every time.
@@ -171,6 +172,106 @@ Notification permission is requested at launch while notifications are enabled, 
 ### Network
 
 **Down / Up**: bytes/s summed over all non-loopback interfaces. Uses the 64-bit counters from `NET_RT_IFLIST2`. Note that traffic through a VPN `utun` interface also passes through the physical interface, so it can be counted twice.
+
+## Homelab servers
+
+Each configured server is a **card** in a deck hanging under the Pulsebar panel, so the panel itself stays about this Mac. The deck appears when you open the panel and goes when you close it. With no servers there is no deck.
+
+Collapsed, a card is a 30 pt glimpse strip: status dot (green up, grey unreachable or not yet polled), name, CPU, RAM and VRAM %, and uptime. Values of 90% or more turn orange. Several servers form a column of strips, 5 pt apart, in the order you added them. `CPU —` shows until a server has two readings, and again for one interval after an outage.
+
+**Hover a card** and it opens downward in place, with the strip staying as its header and later cards moving down. Move the pointer away and it closes. One card is open at a time. VoiceOver reads each card as one item with **Show details** / **Hide details** actions. Open, a card has:
+
+- Uptime, or `unreachable` with when it was last seen and the failure reason (`never reached` if it never answered).
+- Tracks for CPU, RAM and, when a GPU is present, GPU busy and VRAM. They use the same 5-minute axis as the Mac's tracks: 30 points, 10 s apart.
+- Load and cores, swap, root disk free, network rates, and VRAM and GTT per GPU card.
+- **Open in browser**, which opens the server's `/metrics` URL.
+
+The menu bar label and notifications stay about this Mac.
+
+### Set up a server
+
+Install node_exporter on each server:
+
+```sh
+sudo apt install prometheus-node-exporter
+```
+
+For AMD GPU VRAM, enable the `drm` collector. On Debian and Ubuntu, add `--collector.drm` to `ARGS` in `/etc/default/prometheus-node-exporter`, then restart it:
+
+```sh
+sudo systemctl restart prometheus-node-exporter
+```
+
+Only AMD GPUs are supported, through the `drm` collector. Without `drm`, the server still shows CPU, RAM and the rest, and Settings reports that no GPU metrics were found.
+
+> [!warning] node_exporter is unauthenticated
+> It serves metrics over plain HTTP to anyone who can reach port 9100. Firewall port 9100 to your LAN and never expose it to the internet. For example:
+> `sudo ufw allow from 192.168.0.0/16 to any port 9100 proto tcp`
+
+### Add servers in Settings
+
+Open Settings (⌘,) › **Servers**. Each row has a name, a URL, **Test** and a remove button. **Add server** is below the list.
+
+You can type a bare host. Pulsebar fills in the scheme, port and path:
+
+| You type | Pulsebar fetches |
+| --- | --- |
+| `nas.lan` | `http://nas.lan:9100/metrics` |
+| `nas.lan:9200` | `http://nas.lan:9200/metrics` |
+| `https://nas.lan:9443/metrics` | kept as typed |
+
+Only `http` and `https` URLs with a host are accepted. Invalid input is shown inline and not saved.
+
+**Test** fetches the server once and shows one line:
+
+| Result | Text |
+| --- | --- |
+| OK with GPU | `OK · node_exporter, 16 cores, 1 GPU` |
+| OK without `drm` | `OK · no GPU metrics — start node_exporter with --collector.drm` |
+| Not node_exporter | `Not node_exporter (no node_cpu_seconds_total)` |
+| Timeout | `Timed out after 3 s` |
+| Refused / DNS | `Can't connect to nas.lan:9100` |
+| Local network denied | `Blocked by Local Network permission — allow Pulsebar in System Settings › Privacy & Security › Local Network` |
+
+### What each number means
+
+Each reading is taken from the server's `/metrics` output. A metric that a server does not report shows `—`. It does not make the server unreachable.
+
+| Shown as | Source | Meaning |
+| --- | --- | --- |
+| CPU % | `node_cpu_seconds_total` | Share of CPU time since the last reading that was not `idle` or `iowait`, the same rule as the local CPU track |
+| Cores | `node_cpu_seconds_total` | Number of distinct CPUs |
+| RAM | `node_memory_MemTotal_bytes`, `node_memory_MemAvailable_bytes` | Total minus available |
+| Swap | `node_memory_SwapTotal_bytes`, `node_memory_SwapFree_bytes` | Total minus free |
+| Load | `node_load1`, `node_load5`, `node_load15` | Load averages for 1, 5 and 15 minutes |
+| Uptime | `node_time_seconds`, `node_boot_time_seconds` | Both come from the server's clock, so a clock difference between the Mac and the server does not matter |
+| Root disk free | `node_filesystem_avail_bytes`, `node_filesystem_size_bytes` | Free space on `/` |
+| ↓ / ↑ | `node_network_receive_bytes_total`, `node_network_transmit_bytes_total` | Rate between readings. `lo`, `veth*`, `docker*`, `br-*` and `virbr*` are excluded |
+| GPU busy | `node_drm_gpu_busy_percent` | Busy share of each card |
+| VRAM | `node_drm_memory_vram_used_bytes`, `node_drm_memory_vram_size_bytes` | VRAM used of its size, per card |
+| GTT | `node_drm_memory_gtt_used_bytes`, `node_drm_memory_gtt_size_bytes` | System memory the GPU can use, per card |
+
+A counter that goes backwards, for example after a server reboot, leaves a gap in the tracks for that reading. It never shows as a negative or huge spike.
+
+> [!note] GTT on a discrete card
+> On a discrete card, GTT near zero is normal. If GTT grows, the model has spilled out of VRAM into system RAM.
+
+### Polling
+
+- Every server is polled every 10 s in the background, whether or not the panel is open.
+- After 3 consecutive failures, a server is polled every 60 s. One success returns it to 10 s.
+- Opening the panel refreshes any server whose last reading is older than 10 s.
+- Pulsebar asks node_exporter only for the collectors it uses (`collect[]`: `cpu`, `meminfo`, `loadavg`, `stat`, `time`, `filesystem`, `netdev`, `drm`). A request times out after 3 s, and a response over 2 MB counts as a failure.
+- node_exporter answers 400 when `collect[]` names a disabled collector, so a 400 is retried once without `drm`.
+- History is kept in memory for 5 minutes and discarded on quit.
+
+Homelab servers are reached over the LAN only. Away from home, they are simply unreachable.
+
+### Local Network permission
+
+The first time Pulsebar contacts a server, macOS asks for Local Network access. If you deny it, **Test** says so, and the cards show the same reason. To allow it later, go to System Settings › Privacy & Security › Local Network and turn on Pulsebar.
+
+Plain `http://` is allowed, because Pulsebar only fetches URLs you typed in Settings. The app's App Transport Security setting allows arbitrary loads for that reason.
 
 ## Layout
 
