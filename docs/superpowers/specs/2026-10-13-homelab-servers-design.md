@@ -146,14 +146,17 @@ Superseded: the first viewport has no Homelab section; see the revision below.
 
 ## Server cards (revision 2026-10-13)
 
-Each server is a **card**, a separate borderless window hanging under the Pulsebar panel as a glimpse deck.
+Servers are a **deck of cards** hanging under the Pulsebar panel, drawn in SwiftUI inside ONE borderless window.
 
-- Cards are child windows of the `MenuBarExtra` panel (`NSPanel`, non-activating, never key), so they move with it and interacting with one does not dismiss the panel. Level matches the panel. They appear when the panel opens, go when it closes, and follow `panel.servers` live. No servers, no cards.
-- **Collapsed**: a 30 pt strip (dot, name, CPU %, RAM %, VRAM % when a GPU is present, uptime; or `unreachable · last seen …`; ≥90% orange). The window is strip + 10 pt corner radius; the top radius tucks behind the panel or the previous card. Width is panel width − 16 pt, centred. Card *n* sits one strip lower than card *n−1*. Z-order: panel > card 0 > card 1 > …
-- **Expanded** (hover): the card animates (0.18 s ease-out, none with Reduce Motion) to full size above the panel, bottom edge fixed at the strip's bottom, so it grows upward. Content is the full server view (tracks, details, **Open in browser**) above the glimpse strip. Clamped to the screen's `visibleFrame.maxY`.
-- Hover uses an `NSTrackingArea` (`.activeAlways`, `.inVisibleRect`) because the panels are never key. Mouse exit collapses after 150 ms; entering another card swaps at once.
-- Accessibility: one element per card with the old row label, plus actions **Show details** (expands) and **Open in browser**.
-- `CardDeck` in `PulsebarKit` holds the pure placement (collapsed frames, expanded frame with clamp); `ServerCardStack` owns the windows.
+- The window is a non-activating `NSPanel` (never key), attached as a child `.below` the `MenuBarExtra` panel, so it moves with it and interacting with it does not dismiss the panel. It exists only while the panel is open and at least one server is configured, and follows `panel.servers` live.
+- Width is panel width − 16 pt, centred. Its top edge is 10 pt above the panel's bottom edge: that transparent margin hides behind the panel and holds no content.
+- **Collapsed**: each card is a 30 pt strip (dot, name, CPU %, RAM %, VRAM % with a GPU, uptime; or `unreachable · last seen …`; ≥90% orange). Each next card tucks 6 pt under the previous one (earlier cards on top).
+- **Open** (hover): the card grows downward in place; its strip stays as the header, the full server view (tracks, details, **Open in browser**) is below, and later strips move down. One open at a time. `withAnimation(.easeOut(0.18))`, none with Reduce Motion.
+- **Window sizing**: top fixed. The window grows to the target height before the animation and shrinks after it. A deck taller than the space down to the screen's `visibleFrame.minY` caps the open card's details in a `ScrollView`.
+- **Hover** is a hosting-view `NSTrackingArea` (`.activeAlways`, `.inVisibleRect`) reporting the pointer; cards report their frames to a shared state and the stack hit-tests. The panels are never key, and `.activeAlways` is the only documented way to receive tracking events then. Leaving all cards collapses after 150 ms; moving to another card swaps at once.
+- **Look**: opaque `windowBackgroundColor` rounded rectangles (10 pt) with a hairline `separatorColor` stroke; no window shadow, no per-card material (translucent overlapping layers would show each other's edges).
+- Accessibility: one element per card with the old row label, plus actions **Show details** / **Hide details** and **Open in browser**.
+- `CardDeck` in `PulsebarKit` holds the pure window placement and height limit; `ServerCardStack` owns the window.
 
 ## Settings
 

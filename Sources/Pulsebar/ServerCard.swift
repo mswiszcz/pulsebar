@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import PulsebarKit
 import SwiftUI
 
@@ -9,38 +10,88 @@ enum PanelLayout {
 enum ServerCardLayout {
   static let width = CardDeck.cardWidth(panelWidth: PanelLayout.width)
   static let padding: CGFloat = 14
+  static let deckSpace = "deck"
+}
+
+@MainActor
+@Observable
+final class DeckState {
+  var open: UUID?
+  var detailsCap: CGFloat?
+  @ObservationIgnored var frames: [UUID: CGRect] = [:]
+
+  init(open: UUID? = nil) {
+    self.open = open
+  }
 }
 
 extension ServerSnapshot {
   fileprivate var reading: ServerReading? {
     if case .up(let reading) = state { reading } else { nil }
   }
+
+  fileprivate func openInBrowser() { NSWorkspace.shared.open(config.url) }
 }
 
-struct ServerCard: View {
+struct ServerDeck: View {
   let store: StatsStore
-  let id: UUID
-  let expand: () -> Void
+  let state: DeckState
+  let toggle: (UUID) -> Void
 
   var body: some View {
-    if let server = store.panel.servers.first(where: { $0.id == id }) {
-      VStack(alignment: .leading, spacing: 0) {
-        ServerDetails(server: server)
-        Divider()
-        Glimpse(server: server)
+    let servers = store.panel.servers
+    VStack(spacing: -CardDeck.tuck) {
+      ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
+        DeckCard(
+          server: server, isFirst: index == 0, isOpen: state.open == server.id,
+          detailsCap: state.detailsCap,
+          frameChanged: { state.frames[server.id] = $0 }, toggle: { toggle(server.id) }
+        )
+        .zIndex(Double(servers.count - index))
       }
-      .frame(width: ServerCardLayout.width, alignment: .leading)
-      .transaction { $0.disablesAnimations = true }
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel(HomelabText.spoken(server))
-      .accessibilityAction(named: "Show details", expand)
-      .accessibilityAction(named: "Open in browser") { server.openInBrowser() }
     }
+    .padding(.top, CardDeck.hiddenMargin)
+    .frame(width: ServerCardLayout.width)
+    .frame(maxHeight: .infinity, alignment: .top)
+    .coordinateSpace(.named(ServerCardLayout.deckSpace))
   }
 }
 
-extension ServerSnapshot {
-  fileprivate func openInBrowser() { NSWorkspace.shared.open(config.url) }
+private struct DeckCard: View {
+  let server: ServerSnapshot
+  let isFirst: Bool
+  let isOpen: Bool
+  let detailsCap: CGFloat?
+  let frameChanged: (CGRect) -> Void
+  let toggle: () -> Void
+
+  private var shape: RoundedRectangle {
+    RoundedRectangle(cornerRadius: CardDeck.cornerRadius, style: .continuous)
+  }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Glimpse(server: server)
+        .padding(.top, isFirst ? 0 : CardDeck.tuck)
+      if isOpen {
+        Divider()
+        ServerDetails(server: server, cap: detailsCap)
+          .transition(.opacity)
+      }
+    }
+    .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+    .clipShape(shape)
+    .overlay(shape.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 0.5))
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .named(ServerCardLayout.deckSpace))
+    } action: {
+      frameChanged($0)
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(HomelabText.spoken(server))
+    .accessibilityAction(named: isOpen ? "Hide details" : "Show details", toggle)
+    .accessibilityAction(named: "Open in browser") { server.openInBrowser() }
+  }
 }
 
 private struct Glimpse: View {
@@ -98,8 +149,17 @@ private struct Glimpse: View {
 
 private struct ServerDetails: View {
   let server: ServerSnapshot
+  let cap: CGFloat?
 
   var body: some View {
+    if let cap {
+      ScrollView { content }.frame(height: cap)
+    } else {
+      content
+    }
+  }
+
+  private var content: some View {
     VStack(alignment: .leading, spacing: 8) {
       switch server.state {
       case .up(let reading):
@@ -116,9 +176,9 @@ private struct ServerDetails: View {
         .buttonStyle(.link)
         .font(.subheadline)
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.horizontal, ServerCardLayout.padding)
-    .padding(.top, ServerCardLayout.padding)
-    .padding(.bottom, 8)
+    .padding(.vertical, 10)
   }
 }
 

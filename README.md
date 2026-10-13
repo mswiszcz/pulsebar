@@ -175,11 +175,11 @@ Notification permission is requested at launch while notifications are enabled, 
 
 ## Homelab servers
 
-Each configured server is a **card** hanging under the Pulsebar panel, so the panel itself stays about this Mac. Cards appear when you open the panel and go when you close it. With no servers there are no cards.
+Each configured server is a **card** in a deck hanging under the Pulsebar panel, so the panel itself stays about this Mac. The deck appears when you open the panel and goes when you close it. With no servers there is no deck.
 
-Collapsed, a card is a 30 pt glimpse strip: status dot (green up, grey unreachable or not yet polled), name, CPU, RAM and VRAM %, and uptime. Values of 90% or more turn orange. Several servers form a stack of rounded edges, in the order you added them.
+Collapsed, a card is a 30 pt glimpse strip: status dot (green up, grey unreachable or not yet polled), name, CPU, RAM and VRAM %, and uptime. Values of 90% or more turn orange. Several servers form a stack of strips, each tucked slightly under the one above it, in the order you added them. `CPU —` shows until a server has two readings, and again for one interval after an outage.
 
-**Hover a card** and it rises over the panel to its full size, with the glimpse staying under the pointer. Move the pointer away and it drops back. VoiceOver reads each card as one item with a **Show details** action. Expanded, a card has:
+**Hover a card** and it opens downward in place, with the strip staying as its header and later cards moving down. Move the pointer away and it closes. One card is open at a time. VoiceOver reads each card as one item with **Show details** / **Hide details** actions. Open, a card has:
 
 - Uptime, or `unreachable` with when it was last seen and the failure reason (`never reached` if it never answered).
 - Tracks for CPU, RAM and, when a GPU is present, GPU busy and VRAM. They use the same 5-minute axis as the Mac's tracks: 30 points, 10 s apart.

@@ -151,7 +151,7 @@ Flat. No shadows, materials, glass or gradients inside the panel; the only depth
 ### Named Rules
 **The Window Is The Only Surface Rule.** No cards or inset panels inside the panel. Groups are separated by space and hairline dividers.
 
-**Server cards.** Homelab servers are the one exception, and sit outside the panel: system-material windows with 10 pt corners and a system shadow, hanging below it as a deck of 30 pt glimpse strips (dot, name, CPU, RAM, VRAM, uptime) whose rounded bottom edges stack. Hovering a card raises it upward over the panel to its full size; leaving drops it back.
+**Server cards.** Homelab servers are the one exception, and sit outside the panel: one window under it holding a deck of 30 pt glimpse strips (dot, name, CPU, RAM, VRAM, uptime), opaque rounded rectangles with a hairline stroke, each tucked 6 pt under the one above. Hovering a strip opens that card downward in place, pushing the others down; leaving closes it.
 
 ## Shapes
 
