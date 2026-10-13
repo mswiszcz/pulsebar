@@ -50,7 +50,7 @@ The panel footer has three glyph buttons: Activity Monitor (⌘M), Settings (⌘
 | Launch at login | off | Registers the app with `SMAppService.mainApp`. If macOS asks for approval, Settings shows a button to System Settings › General › Login Items |
 | Notify when memory is under pressure | on | Posts a notification when pressure stays elevated (see [[#Pressure alerts]]) |
 | Notify at | Warning | **Warning** or **Critical only** |
-| Servers | none | Homelab servers shown as cards behind the panel. See [[#Homelab servers]] |
+| Servers | none | Homelab servers shown as a card deck under the panel. See [[#Homelab servers]] |
 
 > [!important] Login item needs the installed copy
 > Enable *Launch at login* from `~/Applications/Pulsebar.app` (`make install`), not from `build/`. The login item records the path of the copy that registered it, and `make build` replaces `build/Pulsebar.app` every time.
