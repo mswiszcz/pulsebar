@@ -24,7 +24,7 @@ Spec: [[2026-10-13-homelab-servers-design]]. Integration branch: `feat/homelab-s
 | T3 | HomelabMonitor actor + ServerTracker | T1, T2 | merged | hs-t3 | b814303 | — |
 | T5 | Panel: StatsStore, PanelModel, HomelabList, PopoverView | T3, T4 | dispatched | hs-t5 | — | await report |
 | T6 | Settings Servers section, ServerSettings, Info.plist | T3 | merged | hs-t6 | 977f137 | — |
-| T7 | Docs: README, PRODUCT.md, design-contract | T5, T6 | pending | — | — | — |
+| T7 | Docs: README, PRODUCT.md, design-contract | T5, T6 | merged | hs-t7 | 7fbe4d7 | verify panel claims against T5 |
 
 ## Pitfalls
 
