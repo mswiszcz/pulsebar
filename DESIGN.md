@@ -149,7 +149,9 @@ Footer: "Updated every 2 s" left; `gearshape` borderless button (Settings, ⌘,)
 Flat. No shadows, materials, glass or gradients inside the panel; the only depth is the system `MenuBarExtra` window. Separation comes from `Divider()` rules and spacing. Area fills under graph lines are translucent tints of the track hue (28%, 50% under increased contrast), not shading.
 
 ### Named Rules
-**The Window Is The Only Surface Rule.** No cards or inset panels. Groups are separated by space and hairline dividers.
+**The Window Is The Only Surface Rule.** No cards or inset panels inside the panel. Groups are separated by space and hairline dividers.
+
+**Server cards.** Homelab servers are the one exception, and sit outside the panel: 300 pt system-material windows with 10 pt corners and a system shadow, stacked behind the panel and fanned left, each half-covered by the one in front. Dot, name and figures sit on the left half. Click a card to bring it forward, click again to send it back.
 
 ## Shapes
 

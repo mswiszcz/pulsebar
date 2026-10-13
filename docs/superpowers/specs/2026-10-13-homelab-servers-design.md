@@ -105,6 +105,9 @@ stateDiagram-v2
 
 ## Panel UI
 
+> [!warning] Replaced
+> The collapsed and expanded rows below are replaced by the server cards in [[#Server cards (revision 2026-10-13)]]. Nothing homelab-related remains inside the panel.
+
 A **Homelab** section between the Apps list and the footer, shown only when at least one server is configured.
 
 ### Collapsed row
@@ -139,7 +142,20 @@ One server expanded at a time, independent of the expanded app.
 
 ### Design contract
 
-`docs/design-contract.md` changes: the first viewport gains the Homelab section (~20 pt per server). It still must not scroll with up to 6 collapsed servers.
+Superseded: the first viewport has no Homelab section; see the revision below.
+
+## Server cards (revision 2026-10-13)
+
+Each server is a **card**, a separate borderless window stacked behind the Pulsebar panel and fanned out to the left.
+
+- Cards are child windows of the `MenuBarExtra` panel (`NSPanel`, non-activating, never key), so they move with it and clicking one does not dismiss the panel. Level matches the panel; top edges align.
+- Card 0 sits directly behind the panel with half its width showing left of it. Each next card sits another half-width further left. Z-order: panel > card 0 > card 1 > …
+- Width 300 pt, height fits content. System `.menu` material, 10 pt corners, system shadow, 14 pt padding.
+- Content is the full server view: dot, name, uptime; CPU / RAM / VRAM figures; CPU, RAM, GPU, VRAM tracks on the shared 5-minute axis; detail lines; **Open in browser**. Unreachable servers show last seen and the reason. Dot, name and figures sit on the left, readable while the card is half covered.
+- Click a card to bring it in front of the panel and the others; click it again, or another card, to return it to its slot. Order resets when the panel closes.
+- Cards appear when the panel opens and go when it closes. No servers, no cards. They follow `panel.servers` live and are added or removed while the panel is open.
+- A card never starts left of the screen's visible frame; its x is clamped.
+- The pure placement function is `CardFan.frames` in `PulsebarKit`; window handling is `ServerCardStack`.
 
 ## Settings
 

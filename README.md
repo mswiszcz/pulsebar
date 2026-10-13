@@ -50,7 +50,7 @@ Quit from the panel's **Quit** button (⌘Q while it is open). The gear button n
 | Launch at login | off | Registers the app with `SMAppService.mainApp`. If macOS asks for approval, Settings shows a button to System Settings › General › Login Items |
 | Notify when memory is under pressure | on | Posts a notification when pressure stays elevated (see [[#Pressure alerts]]) |
 | Notify at | Warning | **Warning** or **Critical only** |
-| Servers | none | Homelab servers shown in the panel. See [[#Homelab servers]] |
+| Servers | none | Homelab servers shown as cards behind the panel. See [[#Homelab servers]] |
 
 > [!important] Login item needs the installed copy
 > Enable *Launch at login* from `~/Applications/Pulsebar.app` (`make install`), not from `build/`. The login item records the path of the copy that registered it, and `make build` replaces `build/Pulsebar.app` every time.
@@ -175,23 +175,13 @@ Notification permission is requested at launch while notifications are enabled, 
 
 ## Homelab servers
 
-The panel has a **Homelab** section between Apps and the footer. It appears when at least one server is configured. It shows CPU, RAM, VRAM, uptime and status for each server, next to the Mac's own numbers.
+Each configured server is a **card** stacked behind the Pulsebar panel and fanned out to the left, so the panel itself stays about this Mac. Cards appear when you open the panel and go when you close it. With no servers there are no cards.
 
-Each server is one compact row:
+The first card sits right behind the panel with its left half showing; each next one sits another half-width further left. The left half carries the dot (green up, grey unreachable or not yet polled), the name and CPU, RAM and VRAM figures; values of 90% or more turn orange.
 
-```
-▸ ● llm-box   CPU 64%  RAM 78%  VRAM 91%  up 4d
-▸ ● nas       CPU 12%  RAM 41%            up 23d
-▸ ○ pi-hole   unreachable · last seen 3 min ago
-```
+**Click a card** to bring it in front of everything. Click it again, or click another card, to put it back. A card has:
 
-- **Dot**: green when up, grey when unreachable or not yet polled.
-- Values of 90% or more turn orange.
-- A server without a GPU leaves the VRAM column empty. With several GPUs, the column shows the fullest card.
-- A server that was never reached shows `never reached`. Hover the row for the failure reason.
-
-Click a row to expand it. Only one server is expanded at a time. The expansion has:
-
+- Uptime, or `unreachable` with when it was last seen and the failure reason (`never reached` if it never answered).
 - Tracks for CPU, RAM and, when a GPU is present, GPU busy and VRAM. They use the same 5-minute axis as the Mac's tracks: 30 points, 10 s apart.
 - Load and cores, swap, root disk free, network rates, and VRAM and GTT per GPU card.
 - **Open in browser**, which opens the server's `/metrics` URL.
@@ -279,7 +269,7 @@ Homelab servers are reached over the LAN only. Away from home, they are simply u
 
 ### Local Network permission
 
-The first time Pulsebar contacts a server, macOS asks for Local Network access. If you deny it, **Test** says so, and the rows show the same reason on hover. To allow it later, go to System Settings › Privacy & Security › Local Network and turn on Pulsebar.
+The first time Pulsebar contacts a server, macOS asks for Local Network access. If you deny it, **Test** says so, and the cards show the same reason. To allow it later, go to System Settings › Privacy & Security › Local Network and turn on Pulsebar.
 
 Plain `http://` is allowed, because Pulsebar only fetches URLs you typed in Settings. The app's App Transport Security setting allows arbitrary loads for that reason.
 

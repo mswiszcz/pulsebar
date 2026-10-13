@@ -13,7 +13,6 @@ final class StatsStore {
 
   private(set) var panel = PanelModel()
   var expandedApp: AppIdentity?
-  var expandedServer: UUID?
   var isPopoverOpen = false {
     didSet {
       guard isPopoverOpen, !oldValue else { return }

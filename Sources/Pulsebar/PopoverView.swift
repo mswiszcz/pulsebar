@@ -1,11 +1,12 @@
+import AppKit
 import PulsebarKit
 import SwiftUI
 
 struct PopoverView: View {
   let model: PanelModel
   @Binding var expandedApp: AppIdentity?
-  @Binding var expandedServer: UUID?
   var onVisibilityChange: (Bool) -> Void = { _ in }
+  var onWindowChange: (NSWindow?) -> Void = { _ in }
 
   @Environment(\.openSettings) private var openSettings
 
@@ -39,10 +40,6 @@ struct PopoverView: View {
           apps: apps, details: stats?.processes.details ?? [:], growth: model.growth,
           growthMinutes: model.growthMinutes, docker: model.docker, expanded: $expandedApp)
       }
-      if !model.servers.isEmpty {
-        Divider()
-        HomelabList(servers: model.servers, expanded: $expandedServer)
-      }
       Divider()
       HStack {
         Text("Updated every 2 s")
@@ -66,6 +63,7 @@ struct PopoverView: View {
     .transaction { $0.disablesAnimations = true }
     .onAppear { onVisibilityChange(true) }
     .onDisappear { onVisibilityChange(false) }
+    .background(PanelWindowReader(onChange: onWindowChange))
   }
 
   private func showSettings() {
