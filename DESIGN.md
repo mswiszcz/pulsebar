@@ -142,7 +142,7 @@ Single-direction tracks (Pressure, CPU) grow up from a bottom baseline. Two-way 
 
 Apps list: chevron (9 pt) · icon (16 pt) · name with "×N" process count · growth badge · memory (64 pt) · CPU (40 pt), right-aligned numeric columns, 6 pt row inset. Expanded detail lines are indented to the name column and share the memory and CPU columns.
 
-Footer: "Updated every 2 s" left; `gearshape` borderless button (Settings, ⌘,) and small Quit button (⌘Q) right.
+Footer: "Updated every 2 s" left; `waveform.path.ecg.rectangle` borderless button (Activity Monitor, ⌘M), `gearshape` borderless button (Settings, ⌘,) and small Quit button (⌘Q) right.
 
 ## Elevation & Depth
 

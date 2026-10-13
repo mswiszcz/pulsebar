@@ -46,6 +46,13 @@ struct PopoverView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
         Spacer()
+        Button(action: ActivityMonitor.open) {
+          Image(systemName: "waveform.path.ecg.rectangle")
+        }
+        .buttonStyle(.borderless)
+        .keyboardShortcut("m")
+        .help("Open Activity Monitor (⌘M)")
+        .accessibilityLabel("Open Activity Monitor")
         Button(action: showSettings) {
           Image(systemName: "gearshape")
         }
