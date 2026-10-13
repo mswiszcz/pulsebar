@@ -13,9 +13,9 @@ struct TopAppsTests {
 
   @Test func aggregateSumsMemoryCPUAndCountsPerApp() {
     let apps = TopApps.aggregate([
-      ProcessUsage(app: firefox, memory: 300, cpuShare: 0.25),
-      ProcessUsage(app: node, memory: 50, cpuShare: 0.01),
-      ProcessUsage(app: firefox, memory: 200, cpuShare: 0.5),
+      ProcessUsage(id: ProcessID(pid: 1, startTime: 0), app: firefox, memory: 300, cpuShare: 0.25),
+      ProcessUsage(id: ProcessID(pid: 2, startTime: 0), app: node, memory: 50, cpuShare: 0.01),
+      ProcessUsage(id: ProcessID(pid: 3, startTime: 0), app: firefox, memory: 200, cpuShare: 0.5),
     ])
     #expect(
       Set(apps.map(\.app.name)) == ["Firefox", "node"]
@@ -24,16 +24,16 @@ struct TopAppsTests {
 
   @Test func aggregateWithoutCPUBaselineHasNoShare() {
     let apps = TopApps.aggregate([
-      ProcessUsage(app: node, memory: 10, cpuShare: nil),
-      ProcessUsage(app: node, memory: 20, cpuShare: nil),
+      ProcessUsage(id: ProcessID(pid: 4, startTime: 0), app: node, memory: 10, cpuShare: nil),
+      ProcessUsage(id: ProcessID(pid: 5, startTime: 0), app: node, memory: 20, cpuShare: nil),
     ])
     #expect(apps == [AppUsage(app: node, processCount: 2, memory: 30, cpuShare: nil)])
   }
 
   @Test func aggregateSumsOnlyProcessesWithBaseline() {
     let apps = TopApps.aggregate([
-      ProcessUsage(app: node, memory: 10, cpuShare: nil),
-      ProcessUsage(app: node, memory: 20, cpuShare: 0.125),
+      ProcessUsage(id: ProcessID(pid: 6, startTime: 0), app: node, memory: 10, cpuShare: nil),
+      ProcessUsage(id: ProcessID(pid: 7, startTime: 0), app: node, memory: 20, cpuShare: 0.125),
     ])
     #expect(apps.first?.cpuShare == 0.125)
   }
@@ -41,8 +41,8 @@ struct TopAppsTests {
   @Test func aggregateKeepsSameNameDifferentBundlesApart() {
     let other = AppIdentity(name: "Firefox", bundlePath: "/Users/me/Firefox.app")
     let apps = TopApps.aggregate([
-      ProcessUsage(app: firefox, memory: 1, cpuShare: 0),
-      ProcessUsage(app: other, memory: 1, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 8, startTime: 0), app: firefox, memory: 1, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 9, startTime: 0), app: other, memory: 1, cpuShare: 0),
     ])
     #expect(apps.count == 2)
   }
@@ -86,5 +86,21 @@ struct TopAppsTests {
 
   @Test func culpritsWithNonPositiveLimitsAreEmpty() {
     #expect(TopApps.culprits([app("a", memory: 1, cpu: 0.5)], byMemory: -1, byCPU: 0).isEmpty)
+  }
+
+  @Test func topProcessesRankOneAppByMemory() {
+    let processes = [
+      ProcessUsage(id: ProcessID(pid: 10, startTime: 0), app: firefox, memory: 100, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 11, startTime: 0), app: node, memory: 900, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 12, startTime: 0), app: firefox, memory: 300, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 13, startTime: 0), app: firefox, memory: 300, cpuShare: 0),
+      ProcessUsage(id: ProcessID(pid: 9, startTime: 0), app: firefox, memory: 50, cpuShare: 0),
+    ]
+    #expect(
+      TopApps.topProcesses(processes, of: firefox, limit: 3).map(\.id.pid) == [12, 13, 10])
+  }
+
+  @Test func topProcessesOfUnknownAppIsEmpty() {
+    #expect(TopApps.topProcesses([], of: firefox, limit: 5).isEmpty)
   }
 }

@@ -9,11 +9,11 @@ public actor StatsCollector {
 
   public init() {}
 
-  public func sample() -> Stats {
+  public func sample(includeDetails: Bool) -> Stats {
     let now = ProcessInfo.processInfo.systemUptime
     return Stats(
       memory: memory.sample(),
-      apps: processes.sample(at: now),
+      processes: processes.sample(at: now, includeDetails: includeDetails),
       cpuFraction: cpu.sample(),
       disk: disk.sample(at: now),
       network: network.sample(at: now)

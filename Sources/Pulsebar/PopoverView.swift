@@ -2,8 +2,14 @@ import PulsebarKit
 import SwiftUI
 
 struct PopoverView: View {
-  let stats: Stats?
-  let history: RingBuffer<HistorySample>
+  let model: PanelModel
+  @Binding var expandedApp: AppIdentity?
+  var onVisibilityChange: (Bool) -> Void = { _ in }
+
+  @Environment(\.openSettings) private var openSettings
+
+  private var stats: Stats? { model.stats }
+  private var history: RingBuffer<HistorySample> { model.history }
 
   private static let diskFloor = 1_000_000.0
   private static let networkFloor = 100_000.0
@@ -28,7 +34,9 @@ struct PopoverView: View {
       }
       if let apps = stats?.apps, !apps.isEmpty {
         Divider()
-        AppsList(apps: apps)
+        AppsList(
+          apps: apps, details: stats?.processes.details ?? [:], growth: model.growth,
+          growthMinutes: model.growthMinutes, docker: model.docker, expanded: $expandedApp)
       }
       Divider()
       HStack {
@@ -36,6 +44,13 @@ struct PopoverView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
         Spacer()
+        Button(action: showSettings) {
+          Image(systemName: "gearshape")
+        }
+        .buttonStyle(.borderless)
+        .keyboardShortcut(",")
+        .help("Settings")
+        .accessibilityLabel("Settings")
         Button("Quit") { NSApplication.shared.terminate(nil) }
           .keyboardShortcut("q")
           .controlSize(.small)
@@ -44,6 +59,14 @@ struct PopoverView: View {
     .padding(14)
     .frame(width: 340)
     .transaction { $0.disablesAnimations = true }
+    .onAppear { onVisibilityChange(true) }
+    .onDisappear { onVisibilityChange(false) }
+  }
+
+  private func showSettings() {
+    NSApp.activate()
+    openSettings()
+    NSApp.activate()
   }
 
   private var header: some View {

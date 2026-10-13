@@ -84,7 +84,7 @@ Density is high but quiet. Color is spent only on data: one accent per track, an
 - Pressure verdict in plain words, before any number.
 - Four tracks share column widths and time ticks; the newest sample is always at the right edge.
 - Color means data. Text, rules and labels are semantic grays.
-- Fixed width, no scrolling, no animation.
+- Fixed width, no scrolling, no animation. Expanding an app row grows the panel downward.
 - Light, dark and increased contrast come from system colors, not custom palettes.
 
 ## Colors
@@ -96,7 +96,7 @@ Semantic system colors only. Hex values are the light-appearance `NSColor` resol
 
 ### Secondary
 - **CPU Blue** (`systemBlue`): CPU track only.
-- **Disk Orange** (`systemOrange`): Disk track. Also the "busy app" CPU figure in the Apps list (semibold), the one place orange appears outside its track.
+- **Disk Orange** (`systemOrange`): Disk track. Outside its track only as a per-app warning: the "busy app" CPU figure (semibold) and the growth badge.
 - **Network Teal** (`systemTeal`): Network track only.
 
 ### Neutral
@@ -140,9 +140,9 @@ Every track row is three columns: label (50 pt, leading), graph (flexible), valu
 
 Single-direction tracks (Pressure, CPU) grow up from a bottom baseline. Two-way tracks (Disk, Network) mirror around a center baseline: read/down above, write/up below. Two-way tracks use a square-root scale with a floor (Disk 1 MB/s, Network 100 kB/s) and print their full-scale value.
 
-Apps list: icon (16 pt) · name with "×N" process count · memory (64 pt) · CPU (40 pt), right-aligned numeric columns, 6 pt row inset.
+Apps list: chevron (9 pt) · icon (16 pt) · name with "×N" process count · growth badge · memory (64 pt) · CPU (40 pt), right-aligned numeric columns, 6 pt row inset. Expanded detail lines are indented to the name column and share the memory and CPU columns.
 
-Footer: "Updated every 2 s" left, small Quit button right (⌘Q).
+Footer: "Updated every 2 s" left; `gearshape` borderless button (Settings, ⌘,) and small Quit button (⌘Q) right.
 
 ## Elevation & Depth
 
@@ -170,13 +170,25 @@ Dot in the pressure color, verdict in Title, then right-aligned "N% used" (secon
 - **Accessibility:** one element per track; value reads current plus 5-minute range.
 
 ### App Row
-Plain button, whole row clickable, opens Activity Monitor; tooltip "Open Activity Monitor". Hover fills a 6 pt rounded quaternary background. App icon from the bundle, `terminal` SF Symbol for bundle-less processes. CPU above one core's share turns orange semibold, otherwise secondary.
+Plain button, whole row clickable, toggles an inline disclosure; tooltip "Show processes" / "Hide processes". Leading `chevron.right` (9 pt semibold, secondary) points down when expanded; no rotation animation. Hover fills a 6 pt rounded quaternary background. App icon from the bundle, `terminal` SF Symbol for bundle-less processes. The name takes layout priority over the badge; "×N" never wraps. CPU above one core's share turns orange semibold, otherwise secondary. One app expanded at a time.
+
+### App Details (expanded row)
+- Indented to the name column, `.subheadline`, tabular digits, memory and CPU in the row's columns.
+- Line: label, then "· uptime" in secondary (`3d`, `10h`). Label is the process role, the `~`-abbreviated working directory for bundle-less tools, or the container name for Docker (no uptime).
+- States in secondary text, never a spinner: "Reading containers…", "Docker not reachable", "No running containers", "—" while details load.
+- Last line: "Open in Activity Monitor", `.buttonStyle(.link)`.
+
+### Growth Badge
+`.caption`, `systemOrange`, beside the memory value on a collapsed or expanded row: "+1.2 GB / 10 min". Falls back to "+1.2 GB" when the row is too narrow (`ViewThatFits`). Orange here follows the busy-CPU precedent: a warning about one app, not chrome.
+
+### Settings Window
+SwiftUI `Settings` scene, `Form` with `.formStyle(.grouped)`, 420 pt wide, height fits content. Section 1: "Launch at login" toggle; when approval is needed, a secondary line "Approve in System Settings › General › Login Items" with an "Open Login Items" button; errors inline as a secondary `exclamationmark.triangle` label, and the toggle reverts to the real status. Section 2: "Notify when memory is under pressure" toggle and "Notify at" picker (Warning / Critical only), disabled while notifications are off.
 
 ### Menu Bar Label
 Pressure dot (non-template 8 pt image, keeps its color), `memorychip` SF Symbol, memory %, `cpu` SF Symbol, CPU %. Symbols render monochrome (menu bar template tint); padding sits before each symbol. Whole percent, figure-space padded, tabular digits.
 
 ### Buttons
-Only the system Quit button, `.controlSize(.small)`. No custom button styling.
+System Quit button (`.controlSize(.small)`), borderless `gearshape` Settings button, link-style "Open in Activity Monitor". No custom button styling.
 
 ## Do's and Don'ts
 

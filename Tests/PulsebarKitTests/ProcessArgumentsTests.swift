@@ -22,4 +22,26 @@ struct ProcessArgumentsTests {
   func withTruncatedBufferIsNil(bytes: [UInt8]) {
     #expect(ProcessArguments.executablePath(fromProcArgs: bytes) == nil)
   }
+
+  @Test func argumentsSkipPathAndPaddingThenStopAtCount() {
+    let bytes = argumentCount + Array("/bin/claude\0\0\0claude\0-p\0HOME=/Users/me\0".utf8)
+    #expect(ProcessArguments.arguments(fromProcArgs: bytes) == ["claude", "-p"])
+  }
+
+  @Test func argumentsKeepEmptyArgument() {
+    let bytes: [UInt8] = [3, 0, 0, 0] + Array("/bin/x\0x\0\0last\0".utf8)
+    #expect(ProcessArguments.arguments(fromProcArgs: bytes) == ["x", "", "last"])
+  }
+
+  @Test func argumentsReadCountAboveOneByte() {
+    let values = (0..<300).map { "a\($0)" }
+    let bytes: [UInt8] =
+      [44, 1, 0, 0] + Array(("/bin/x\0" + values.joined(separator: "\0") + "\0").utf8)
+    #expect(ProcessArguments.arguments(fromProcArgs: bytes) == values)
+  }
+
+  @Test(arguments: [[UInt8](), [1, 0, 0, 0], [1, 0, 0, 0] + Array("/bin/x".utf8)])
+  func argumentsFromTruncatedBufferAreEmpty(bytes: [UInt8]) {
+    #expect(ProcessArguments.arguments(fromProcArgs: bytes).isEmpty)
+  }
 }

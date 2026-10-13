@@ -41,4 +41,14 @@ struct AppGroupingTests {
   func emptyPathHasNoIdentity(path: String) {
     #expect(AppGrouping.identity(forExecutablePath: path) == nil)
   }
+
+  @Test(arguments: [
+    ("/Applications/Docker.app/Contents/MacOS/com.docker.backend", true),
+    ("/Applications/Docker Tools.app/Contents/MacOS/x", false),
+    ("/Applications/NotDocker.app/Contents/MacOS/x", false),
+    ("/usr/local/bin/docker", false),
+  ])
+  func dockerIsRecognizedByBundle(path: String, isDocker: Bool) {
+    #expect(AppGrouping.identity(forExecutablePath: path)?.isDocker == isDocker)
+  }
 }

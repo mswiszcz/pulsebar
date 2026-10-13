@@ -1,4 +1,6 @@
-public enum PressureLevel: Sendable {
+import Foundation
+
+public enum PressureLevel: Comparable, Sendable {
   case normal, warning, critical
 }
 
@@ -29,10 +31,26 @@ public struct NetworkStats: Sendable {
   public let upRate: Double?
 }
 
+public struct ProcessDetail: Equatable, Sendable {
+  public let id: ProcessID
+  public let label: String
+  public let memory: UInt64
+  public let cpuShare: Double?
+  public let started: Date?
+}
+
+public struct ProcessSnapshot: Sendable {
+  public let apps: [AppUsage]
+  public let largeApps: [AppIdentity: UInt64]
+  public let details: [AppIdentity: [ProcessDetail]]
+}
+
 public struct Stats: Sendable {
   public let memory: MemoryStats?
-  public let apps: [AppUsage]
+  public let processes: ProcessSnapshot
   public let cpuFraction: Double?
   public let disk: DiskStats
   public let network: NetworkStats
+
+  public var apps: [AppUsage] { processes.apps }
 }

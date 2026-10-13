@@ -6,6 +6,8 @@ public struct AppIdentity: Hashable, Sendable {
     self.name = name
     self.bundlePath = bundlePath
   }
+
+  public var isDocker: Bool { bundlePath?.hasSuffix("/Docker.app") == true }
 }
 
 public enum AppGrouping {

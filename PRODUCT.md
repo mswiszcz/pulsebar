@@ -23,14 +23,19 @@ It reports memory the way the kernel judges it — pressure level and `kern.memo
 - Lives in the macOS menu bar (SwiftUI `MenuBarExtra`, window style); no Dock icon.
 - Samples every 2 s; disk free space every 30 s.
 - History is kept in memory for about 5 minutes and discarded on quit.
-- Clicking an app row opens Activity Monitor.
+- Clicking an app row expands its processes; Activity Monitor is one link away.
+- Process details (role, working directory, uptime) are read only while the panel is open. Docker containers are polled every 15 s only while the panel is open or Docker is a top app.
 
 ## Capabilities and Constraints
 
 - Swift Package Manager only; Command Line Tools, no Xcode. No third-party dependencies.
 - Processes owned by root or other users cannot be read without root and are not listed.
 - Menu bar label: pressure dot, memory used %, CPU %.
-- No settings, no login item, no process killing.
+- Expandable app rows: top 5 processes with role (Chromium/Electron `--type`, Firefox `-contentproc`), working directory for non-bundle tools (`claude`, `node`), uptime. Docker expands to running containers from the Docker Engine API.
+- Growth badge: an app that grew ≥ 500 MB over the last 10 min is flagged on its row.
+- Pressure alerts: a notification when pressure stays at warning or critical for 10 s, naming the biggest grower or the biggest app. Never on "used %".
+- Settings: launch at login, pressure notifications and their level.
+- No process killing.
 
 ## Product Principles
 

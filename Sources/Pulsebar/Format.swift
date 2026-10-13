@@ -22,6 +22,15 @@ enum Format {
     return "\(gigabytes(value)) GB"
   }
 
+  static func growth(_ bytes: UInt64, minutes: Int) -> String {
+    "+\(appMemory(bytes)) / \(minutes) min"
+  }
+
+  static func uptime(since start: Date) -> String {
+    Duration.seconds(max(Date.now.timeIntervalSince(start), 0)).formatted(
+      .units(allowed: [.days, .hours, .minutes, .seconds], width: .narrow, maximumUnitCount: 1))
+  }
+
   static func disk(_ value: Int64) -> String {
     storage.format(value)
   }
