@@ -18,10 +18,15 @@ Spec: [[2026-10-13-homelab-servers-design]]. Integration branch: `feat/homelab-s
 
 | # | Task | Depends | Status | Branch | Verified SHA | Next action |
 |---|---|---|---|---|---|---|
-| T1 | PrometheusText + NodeMetrics + NodeRates + tests | — | dispatched | hs-t1 | — | await report |
-| T2 | ServerConfig/ServerURL + PollBackoff + tests | — | dispatched | hs-t2 | — | await report |
+| T1 | PrometheusText + NodeMetrics + NodeRates + tests | — | merged | hs-t1 | 9e6319e | — |
+| T2 | ServerConfig/ServerURL + PollBackoff + tests | — | merged | hs-t2 | 8272d98 | — |
 | T4 | TrackGraph/TimelineAxis explicit sample interval, TrackRow height | — | dispatched | hs-t4 | — | await report |
-| T3 | HomelabMonitor actor | T1, T2 | pending | — | — | dispatch after T1, T2 merge |
+| T3 | HomelabMonitor actor + ServerTracker | T1, T2 | dispatched | hs-t3 | — | await report |
 | T5 | Panel: StatsStore, PanelModel, HomelabList, PopoverView | T3, T4 | pending | — | — | — |
 | T6 | Settings Servers section, ServerSettings, Info.plist | T3 | pending | — | — | — |
 | T7 | Docs: README, PRODUCT.md, design-contract | T5, T6 | pending | — | — | — |
+
+## Pitfalls
+
+- Test files must not `import Foundation` (toolchain lacks `_Testing_Foundation`); keep logic testable without it.
+- `swift test` needs `--disable-sandbox` and a run outside the Bash sandbox; use `--scratch-path $TMPDIR/<task>-build`.
