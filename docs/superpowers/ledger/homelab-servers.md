@@ -23,7 +23,7 @@ Spec: [[2026-10-13-homelab-servers-design]]. Integration branch: `feat/homelab-s
 | T4 | TrackGraph/TimelineAxis explicit sample interval, TrackRow height | — | merged | hs-t4 | a6518ed | — |
 | T3 | HomelabMonitor actor + ServerTracker | T1, T2 | merged | hs-t3 | b814303 | — |
 | T5 | Panel: StatsStore, PanelModel, HomelabList, PopoverView | T3, T4 | dispatched | hs-t5 | — | await report |
-| T6 | Settings Servers section, ServerSettings, Info.plist | T3 | dispatched | hs-t6 | — | await report |
+| T6 | Settings Servers section, ServerSettings, Info.plist | T3 | merged | hs-t6 | 977f137 | — |
 | T7 | Docs: README, PRODUCT.md, design-contract | T5, T6 | pending | — | — | — |
 
 ## Pitfalls
