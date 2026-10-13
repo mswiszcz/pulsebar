@@ -85,17 +85,16 @@ struct ServerDeck: View {
 
   var body: some View {
     let servers = store.panel.servers
-    VStack(spacing: -CardDeck.tuck) {
-      ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
+    VStack(spacing: CardDeck.gap) {
+      ForEach(servers) { server in
         DeckCard(
-          server: server, isFirst: index == 0, isOpen: state.open == server.id,
+          server: server, isOpen: state.open == server.id,
           detailsCap: state.detailsCap, surface: state.surface,
           frameChanged: { state.frames[server.id] = $0 }, toggle: { toggle(server.id) }
         )
-        .zIndex(Double(servers.count - index))
       }
     }
-    .padding(.top, CardDeck.hiddenMargin)
+    .padding(.top, CardDeck.hiddenMargin + CardDeck.gap)
     .frame(width: ServerCardLayout.width)
     .frame(maxHeight: .infinity, alignment: .top)
     .coordinateSpace(.named(ServerCardLayout.deckSpace))
@@ -104,7 +103,6 @@ struct ServerDeck: View {
 
 private struct DeckCard: View {
   let server: ServerSnapshot
-  let isFirst: Bool
   let isOpen: Bool
   let detailsCap: CGFloat?
   let surface: DeckSurface
@@ -124,7 +122,6 @@ private struct DeckCard: View {
   var body: some View {
     VStack(spacing: 0) {
       Glimpse(server: server)
-        .padding(.top, isFirst ? 0 : CardDeck.tuck)
       if isOpen {
         Divider()
         ServerDetails(server: server, cap: detailsCap)
@@ -133,12 +130,7 @@ private struct DeckCard: View {
     }
     .background(EffectBackground(surface: surface))
     .clipShape(shape)
-    .overlay(
-      shape.strokeBorder(outline, lineWidth: 1)
-        .mask(alignment: .bottom) {
-          Rectangle().padding(.top, isFirst ? 0 : CardDeck.tuck)
-        }
-    )
+    .overlay(shape.strokeBorder(outline, lineWidth: 1))
     .onGeometryChange(for: CGRect.self) {
       $0.frame(in: .named(ServerCardLayout.deckSpace))
     } action: {

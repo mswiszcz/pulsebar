@@ -2,7 +2,7 @@ import CoreGraphics
 
 public enum CardDeck {
   public static let stripHeight: CGFloat = 30
-  public static let tuck: CGFloat = 6
+  public static let gap: CGFloat = 5
   public static let hiddenMargin: CGFloat = 10
   public static let cornerRadius: CGFloat = 10
 

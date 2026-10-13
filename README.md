@@ -177,7 +177,7 @@ Notification permission is requested at launch while notifications are enabled, 
 
 Each configured server is a **card** in a deck hanging under the Pulsebar panel, so the panel itself stays about this Mac. The deck appears when you open the panel and goes when you close it. With no servers there is no deck.
 
-Collapsed, a card is a 30 pt glimpse strip: status dot (green up, grey unreachable or not yet polled), name, CPU, RAM and VRAM %, and uptime. Values of 90% or more turn orange. Several servers form a stack of strips, each tucked slightly under the one above it, in the order you added them. `CPU —` shows until a server has two readings, and again for one interval after an outage.
+Collapsed, a card is a 30 pt glimpse strip: status dot (green up, grey unreachable or not yet polled), name, CPU, RAM and VRAM %, and uptime. Values of 90% or more turn orange. Several servers form a column of strips, 5 pt apart, in the order you added them. `CPU —` shows until a server has two readings, and again for one interval after an outage.
 
 **Hover a card** and it opens downward in place, with the strip staying as its header and later cards moving down. Move the pointer away and it closes. One card is open at a time. VoiceOver reads each card as one item with **Show details** / **Hide details** actions. Open, a card has:
 
