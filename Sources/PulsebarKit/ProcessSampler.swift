@@ -1,4 +1,5 @@
 import Darwin
+import Foundation
 
 struct ProcessSampler {
   private struct ProcessKey: Hashable {
@@ -7,6 +8,7 @@ struct ProcessSampler {
   }
 
   private let secondsPerTick: Double
+  private let coreCount = Double(ProcessInfo.processInfo.activeProcessorCount)
   private var previousTicks: [ProcessKey: UInt64] = [:]
   private var previousTime: Double?
   private var argumentsBuffer = [UInt8](repeating: 0, count: Int(ARG_MAX))
@@ -17,32 +19,30 @@ struct ProcessSampler {
     secondsPerTick = Double(timebase.numer) / Double(timebase.denom) / 1_000_000_000
   }
 
-  mutating func sample(at time: Double) -> ProcessStats {
+  mutating func sample(at time: Double) -> [AppUsage] {
     let interval = time - (previousTime ?? time)
-    var memory: [(app: String, value: UInt64)] = []
-    var cpu: [(app: String, value: Double)] = []
+    var processes: [ProcessUsage] = []
     var currentTicks: [ProcessKey: UInt64] = [:]
 
     for pid in Self.allPIDs() {
       guard let usage = Self.resourceUsage(pid),
         let path = launchPath(pid) ?? Self.resolvedPath(pid),
-        let app = AppGrouping.appName(forExecutablePath: path)
+        let app = AppGrouping.identity(forExecutablePath: path)
       else { continue }
       let key = ProcessKey(pid: pid, startTime: usage.ri_proc_start_abstime)
       let ticks = usage.ri_user_time + usage.ri_system_time
       currentTicks[key] = ticks
-      memory.append((app, usage.ri_phys_footprint))
       let ticksPerSecond = CounterRate.perSecond(
         previous: previousTicks[key], current: ticks, interval: interval)
-      cpu.append((app, (ticksPerSecond ?? 0) * secondsPerTick * 100))
+      processes.append(
+        ProcessUsage(
+          app: app, memory: usage.ri_phys_footprint,
+          cpuShare: ticksPerSecond.map { $0 * secondsPerTick / coreCount }))
     }
 
     previousTicks = currentTicks
     previousTime = time
-    return ProcessStats(
-      topMemory: TopApps.rank(memory, limit: 6),
-      topCPU: TopApps.rank(cpu, limit: 5).filter { $0.total > 0 }
-    )
+    return TopApps.culprits(TopApps.aggregate(processes), byMemory: 6, byCPU: 3)
   }
 
   private static func allPIDs() -> [pid_t] {

@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T22:34:34+00:00",
+  "title": "Design System: Pulsebar",
+  "extensions": {
+    "colorMeta": {
+      "pressure-normal": {
+        "role": "primary",
+        "displayName": "Pressure Green",
+        "canonical": "NSColor.systemGreen",
+        "light": "#34C759",
+        "dark": "#30D158",
+        "oklch": "oklch(73.0% 0.194 147.4)",
+        "tonalRamp": [
+          "#001200",
+          "#003200",
+          "#005700",
+          "#007B00",
+          "#009F31",
+          "#30C456",
+          "#76E688",
+          "#BBFFC3"
+        ]
+      },
+      "pressure-warning": {
+        "role": "primary",
+        "displayName": "Pressure Yellow",
+        "canonical": "NSColor.systemYellow",
+        "light": "#FFCC00",
+        "dark": "#FFD60A",
+        "oklch": "oklch(86.5% 0.177 90.4)",
+        "tonalRamp": [
+          "#150800",
+          "#391F00",
+          "#613900",
+          "#875700",
+          "#AB7A00",
+          "#CF9D00",
+          "#EFC440",
+          "#FFEC9D"
+        ]
+      },
+      "pressure-critical": {
+        "role": "primary",
+        "displayName": "Pressure Red",
+        "canonical": "NSColor.systemRed",
+        "light": "#FF3B30",
+        "dark": "#FF453A",
+        "oklch": "oklch(65.4% 0.232 28.7)",
+        "tonalRamp": [
+          "#240000",
+          "#570000",
+          "#910000",
+          "#C30000",
+          "#ED241E",
+          "#FF5647",
+          "#FF8F7C",
+          "#FFCBBA"
+        ]
+      },
+      "track-cpu": {
+        "role": "secondary",
+        "displayName": "CPU Blue",
+        "canonical": "NSColor.systemBlue",
+        "light": "#007AFF",
+        "dark": "#0A84FF",
+        "oklch": "oklch(60.3% 0.218 257.4)",
+        "tonalRamp": [
+          "#00072A",
+          "#001D64",
+          "#0035A4",
+          "#0056D8",
+          "#047BFF",
+          "#3CA1FF",
+          "#77C9FF",
+          "#B8F1FF"
+        ]
+      },
+      "track-disk": {
+        "role": "secondary",
+        "displayName": "Disk Orange",
+        "canonical": "NSColor.systemOrange",
+        "light": "#FF9500",
+        "dark": "#FF9F0A",
+        "oklch": "oklch(76.5% 0.175 62.6)",
+        "tonalRamp": [
+          "#1C0300",
+          "#471100",
+          "#772200",
+          "#A23F00",
+          "#C86300",
+          "#F08700",
+          "#FFB258",
+          "#FFE0A7"
+        ]
+      },
+      "track-network": {
+        "role": "secondary",
+        "displayName": "Network Teal",
+        "canonical": "NSColor.systemTeal",
+        "light": "#30B0C7",
+        "dark": "#40C8E0",
+        "oklch": "oklch(70.0% 0.111 212.7)",
+        "tonalRamp": [
+          "#000F15",
+          "#002D38",
+          "#004E60",
+          "#007086",
+          "#0093A9",
+          "#3AB7CE",
+          "#7ADAEE",
+          "#BDFBFF"
+        ]
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Label",
+        "canonical": "NSColor.labelColor",
+        "light": "#000000D9",
+        "dark": "#FFFFFFD9",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "label-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Label",
+        "canonical": "NSColor.secondaryLabelColor",
+        "light": "#00000080",
+        "dark": "#FFFFFF8C",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "label-tertiary": {
+        "role": "neutral",
+        "displayName": "Tertiary Label",
+        "canonical": "NSColor.tertiaryLabelColor",
+        "light": "#00000042",
+        "dark": "#FFFFFF40",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "fill-quaternary": {
+        "role": "neutral",
+        "displayName": "Quaternary Fill",
+        "canonical": "NSColor.quaternaryLabelColor / .quaternary",
+        "light": "#0000001A",
+        "dark": "#FFFFFF1A",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "separator": {
+        "role": "neutral",
+        "displayName": "Separator",
+        "canonical": "NSColor.separatorColor",
+        "light": "#0000001A",
+        "dark": "#FFFFFF1A",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title (.title3 semibold)",
+        "purpose": "Pressure verdict only."
+      },
+      "body": {
+        "displayName": "Body (.body)",
+        "purpose": "Header used-percentage."
+      },
+      "value": {
+        "displayName": "Value (.callout)",
+        "purpose": "Live track values and app rows; tabular digits, scales to 85% before truncating."
+      },
+      "label": {
+        "displayName": "Label (.caption)",
+        "purpose": "Track names, Apps header, footer."
+      },
+      "caption": {
+        "displayName": "Caption (.caption2)",
+        "purpose": "Value captions, legend, scale labels, ruler, R/W markers."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "none",
+        "value": "transaction.disablesAnimations = true",
+        "purpose": "Panel updates every 2 s without animation."
+      }
+    ],
+    "breakpoints": [],
+    "layout": {
+      "popoverWidth": "340pt",
+      "trackColumns": {
+        "label": "50pt",
+        "graph": "flex",
+        "value": "84pt",
+        "gutter": "8pt"
+      },
+      "trackHeight": "40pt",
+      "rulerHeight": "12pt",
+      "axis": {
+        "window": "5 min",
+        "capacity": 150,
+        "samplesPerMinute": 30,
+        "minuteTicks": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "twoWayScale": {
+        "kind": "square-root",
+        "floorDisk": "1 MB/s",
+        "floorNetwork": "100 kB/s"
+      },
+      "graph": {
+        "fillOpacity": 0.28,
+        "fillOpacityIncreasedContrast": 0.5,
+        "secondHalfEmphasis": 0.55,
+        "lineWidth": "1pt",
+        "rules": "1 device px; baseline 100%, now edge 60%, minute ticks 35% of separatorColor"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Pressure Header",
+      "kind": "custom",
+      "refersTo": "popover",
+      "description": "Verdict line: pressure dot, plain-words verdict, used % over swap.",
+      "html": "<div class=\"ds-header\"><span class=\"ds-dot\"></span><span class=\"ds-verdict\">Memory: normal</span><span class=\"ds-used\"><span>67% used</span><small>Swap 713 MB</small></span></div>",
+      "css": ".ds-header{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display:flex; align-items:center; gap:8px; width:312px; color:rgba(0,0,0,.85);} .ds-dot{width:10px; height:10px; border-radius:50%; background:#34C759;} .ds-verdict{font-size:15px; font-weight:600; flex:1;} .ds-used{display:flex; flex-direction:column; align-items:flex-end; font-size:13px; color:rgba(0,0,0,.5); font-variant-numeric:tabular-nums;} .ds-used small{font-size:10px; color:rgba(0,0,0,.5);}"
+    },
+    {
+      "name": "Memory Composition Bar",
+      "kind": "custom",
+      "refersTo": "popover",
+      "description": "5 pt segmented bar: App in pressure color, Wired/Compressed/Cache in primary grays, legend below.",
+      "html": "<div class=\"ds-comp\"><div class=\"ds-bar\"><i style=\"width:46%;background:#34C759\"></i><i style=\"width:6%;background:rgba(0,0,0,.55)\"></i><i style=\"width:8%;background:rgba(0,0,0,.35)\"></i><i style=\"width:26%;background:rgba(0,0,0,.18)\"></i></div><div class=\"ds-legend\"><span><b style=\"background:#34C759\"></b>App 18,5</span><span><b style=\"background:rgba(0,0,0,.55)\"></b>Wired 2,4</span><span><b style=\"background:rgba(0,0,0,.35)\"></b>Compressed 3,3</span><span><b style=\"background:rgba(0,0,0,.18)\"></b>Cache 10,1 GB</span></div></div>",
+      "css": ".ds-comp{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; width:312px; display:flex; flex-direction:column; gap:3px;} .ds-bar{display:flex; gap:1px; height:5px; border-radius:2px; overflow:hidden; background:rgba(0,0,0,.1);} .ds-bar i{display:block; height:100%;} .ds-legend{display:flex; gap:6px; font-size:10px; color:rgba(0,0,0,.5); font-variant-numeric:tabular-nums; white-space:nowrap;} .ds-legend span{display:flex; align-items:center; gap:3px;} .ds-legend b{width:5px; height:5px; border-radius:50%;}"
+    },
+    {
+      "name": "Track Row",
+      "kind": "custom",
+      "refersTo": "track-row",
+      "description": "Signature: label / shared-axis graph / value, 50-flex-84 pt columns, 40 pt tall. Mirrored two-way variant shown.",
+      "html": "<div class=\"ds-track\"><span class=\"ds-track-label\">Disk</span><svg class=\"ds-graph\" viewBox=\"0 0 150 40\" preserveAspectRatio=\"none\"><g stroke=\"rgba(0,0,0,.035)\" stroke-width=\"1\" vector-effect=\"non-scaling-stroke\"><line x1=\"29\" y1=\"0\" x2=\"29\" y2=\"40\"/><line x1=\"59\" y1=\"0\" x2=\"59\" y2=\"40\"/><line x1=\"89\" y1=\"0\" x2=\"89\" y2=\"40\"/><line x1=\"119\" y1=\"0\" x2=\"119\" y2=\"40\"/></g><path d=\"M0 20 L20 14 L40 17 L60 8 L80 15 L100 11 L120 16 L150 6 L150 20 L0 20Z\" fill=\"rgba(255,149,0,.28)\"/><path d=\"M0 20 L20 14 L40 17 L60 8 L80 15 L100 11 L120 16 L150 6\" fill=\"none\" stroke=\"#FF9500\" stroke-width=\"1\" vector-effect=\"non-scaling-stroke\"/><path d=\"M0 20 L20 24 L40 22 L60 30 L80 23 L100 26 L120 22 L150 28 L150 20 L0 20Z\" fill=\"rgba(255,149,0,.154)\"/><path d=\"M0 20 L20 24 L40 22 L60 30 L80 23 L100 26 L120 22 L150 28\" fill=\"none\" stroke=\"rgba(255,149,0,.55)\" stroke-width=\"1\" vector-effect=\"non-scaling-stroke\"/><line x1=\"0\" y1=\"20\" x2=\"150\" y2=\"20\" stroke=\"rgba(0,0,0,.1)\" vector-effect=\"non-scaling-stroke\"/><line x1=\"150\" y1=\"0\" x2=\"150\" y2=\"40\" stroke=\"rgba(0,0,0,.06)\" vector-effect=\"non-scaling-stroke\"/></svg><span class=\"ds-track-value\"><span><b>R</b> 9 MB/s</span><span><b>W</b> 10 kB/s</span><small>1,2 TB free</small></span></div>",
+      "css": ".ds-track{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display:flex; align-items:center; gap:8px; width:312px; height:40px;} .ds-track-label{width:50px; font-size:10px; color:rgba(0,0,0,.5);} .ds-graph{flex:1; height:40px;} .ds-track-value{width:84px; display:flex; flex-direction:column; align-items:flex-end; font-size:12px; color:rgba(0,0,0,.85); font-variant-numeric:tabular-nums; white-space:nowrap;} .ds-track-value b{font-size:10px; font-weight:600; color:rgba(0,0,0,.5);} .ds-track-value small{font-size:10px; color:rgba(0,0,0,.5);}"
+    },
+    {
+      "name": "App Row",
+      "kind": "button",
+      "refersTo": "app-row",
+      "description": "Whole-row plain button opening Activity Monitor; quaternary rounded hover; busy CPU turns orange semibold.",
+      "html": "<button class=\"ds-app-row\" title=\"Open Activity Monitor\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"rgba(0,0,0,.5)\" stroke-width=\"1.2\"><rect x=\"1.5\" y=\"3\" width=\"13\" height=\"10\" rx=\"2\"/><path d=\"M4 6.5l2 1.5-2 1.5M7.5 10h3\"/></svg><span class=\"ds-app-name\">node <span class=\"ds-dim\">×4</span></span><span class=\"ds-app-mem\">3,6 GB</span><span class=\"ds-app-cpu ds-busy\">14%</span></button>",
+      "css": ".ds-app-row{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display:flex; align-items:center; gap:8px; width:312px; padding:3px 6px; border:0; border-radius:6px; background:transparent; font-size:12px; color:rgba(0,0,0,.85); font-variant-numeric:tabular-nums; text-align:left; cursor:default;} .ds-app-row:hover{background:rgba(0,0,0,.1);} .ds-app-row:focus-visible{outline:3px solid rgba(0,122,255,.5); outline-offset:0;} .ds-app-name{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;} .ds-dim{color:rgba(0,0,0,.5);} .ds-app-mem{width:64px; text-align:right;} .ds-app-cpu{width:40px; text-align:right; color:rgba(0,0,0,.5);} .ds-app-cpu.ds-busy{color:#FF9500; font-weight:600;}"
+    },
+    {
+      "name": "Menu Bar Label",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Pressure dot, memorychip symbol, memory %, cpu symbol, CPU %; monochrome symbols; figure-space padded tabular digits.",
+      "html": "<span class=\"ds-mbl\"><span class=\"ds-mbl-dot\"></span>67% <svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\"><rect x=\"3.5\" y=\"3.5\" width=\"9\" height=\"9\" rx=\"1.5\"/><rect x=\"6\" y=\"6\" width=\"4\" height=\"4\"/><path d=\"M6 1v2M10 1v2M6 13v2M10 13v2M1 6h2M1 10h2M13 6h2M13 10h2\"/></svg> 22%</span>",
+      "css": ".ds-mbl{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display:inline-flex; align-items:center; gap:4px; font-size:13px; color:rgba(0,0,0,.85); font-variant-numeric:tabular-nums;} .ds-mbl-dot{width:8px; height:8px; border-radius:50%; background:#34C759;}"
+    },
+    {
+      "name": "Quit Button",
+      "kind": "button",
+      "refersTo": null,
+      "description": "System push button, small control size; no custom styling.",
+      "html": "<button class=\"ds-btn-system\">Quit</button>",
+      "css": ".ds-btn-system{font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; font-size:11px; padding:1px 8px; border-radius:5px; border:0; background:#fff; color:rgba(0,0,0,.85); box-shadow:0 0 0 .5px rgba(0,0,0,.15), 0 .5px 1px rgba(0,0,0,.15);} .ds-btn-system:active{background:#e5e5e5;} .ds-btn-system:focus-visible{outline:3px solid rgba(0,122,255,.5);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Shared Axis",
+    "overview": "One 340 pt panel, read top to bottom as a verdict, then a timeline, then the culprits. Every metric is a track on the same 5-minute axis, so a spike in one lines up with the others. The world is native macOS and nothing else: SF Pro, monospaced digits, semantic system colors, SF Symbols, AppKit separators. Depth, chrome and decoration are left to the system window.\n\nDensity is high but quiet. Color is spent only on data: one accent per track, and the pressure color wherever pressure is shown. All chrome is gray.",
+    "keyCharacteristics": [
+      "Pressure verdict in plain words, before any number.",
+      "Four tracks share column widths and time ticks; the newest sample is always at the right edge.",
+      "Color means data. Text, rules and labels are semantic grays.",
+      "Fixed width, no scrolling, no animation.",
+      "Light, dark and increased contrast come from system colors, not custom palettes."
+    ],
+    "rules": [
+      {
+        "name": "The Color Is Data Rule",
+        "body": "A hue appears only where it encodes a metric or a pressure level. Chrome, labels and rules stay gray.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Accent Per Track Rule",
+        "body": "Each track owns one system hue. A two-way track (read/write, down/up) uses the same hue for both halves, weighted by opacity, not a second color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every changing number uses `.monospacedDigit()`. The menu bar label also pads with figure spaces (U+2007) to a fixed width so it never jitters.",
+        "section": "typography"
+      },
+      {
+        "name": "The Dash For Missing Rule",
+        "body": "Missing data renders as an em dash (\"—\"), never 0 or a spinner.",
+        "section": "typography"
+      },
+      {
+        "name": "The Window Is The Only Surface Rule",
+        "body": "No cards or inset panels. Groups are separated by space and hairline dividers.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** put every time series on the shared 5-minute axis with the 50 / flexible / 84 pt columns and 40 pt height.",
+      "**Do** use system semantic colors and SwiftUI text styles so dark mode and increased contrast come free.",
+      "**Do** give a new metric its own system hue and use it only in that track.",
+      "**Do** use SF Symbols for icons (arrows, `memorychip`, `cpu`, `terminal`).",
+      "**Do** use `.monospacedDigit()` on every changing number and \"—\" for missing data.",
+      "**Do** keep text at secondary gray or stronger; legibility outranks quietness."
+    ],
+    "donts": [
+      "**Don't** add cards, glass, materials, decorative gradients or colored borders.",
+      "**Don't** give a track a sparkline-in-a-section layout; tracks align, they don't stack as separate widgets.",
+      "**Don't** use a second hue for the other half of a two-way track.",
+      "**Don't** use tertiary gray for text a user needs to read. The build still does (Swap line, scale labels, \"5 min / now\" ruler, Apps column headers); that is a known defect, not a style.",
+      "**Don't** animate value or graph changes; the panel disables animations."
+    ]
+  }
+}

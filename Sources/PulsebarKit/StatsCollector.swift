@@ -13,7 +13,7 @@ public actor StatsCollector {
     let now = ProcessInfo.processInfo.systemUptime
     return Stats(
       memory: memory.sample(),
-      processes: processes.sample(at: now),
+      apps: processes.sample(at: now),
       cpuFraction: cpu.sample(),
       disk: disk.sample(at: now),
       network: network.sample(at: now)

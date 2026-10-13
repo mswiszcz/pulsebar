@@ -3,152 +3,163 @@ import SwiftUI
 
 struct PopoverView: View {
   let stats: Stats?
+  let history: RingBuffer<HistorySample>
+
+  private static let diskFloor = 1_000_000.0
+  private static let networkFloor = 100_000.0
+
+  private var samples: [HistorySample] { history.elements }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      if let stats {
-        if let memory = stats.memory {
-          MemorySection(memory: memory)
+    VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: 8) {
+        header
+        if let memory = stats?.memory {
+          MemoryComposition(memory: memory)
         }
-        TopMemorySection(apps: stats.processes.topMemory)
-        CPUSection(total: stats.cpuFraction, apps: stats.processes.topCPU)
-        DiskSection(disk: stats.disk)
-        NetworkSection(network: stats.network)
-      } else {
-        ProgressView().frame(maxWidth: .infinity)
+      }
+      Divider()
+      VStack(alignment: .leading, spacing: 6) {
+        pressureTrack
+        cpuTrack
+        diskTrack
+        networkTrack
+        TimeRuler()
+      }
+      if let apps = stats?.apps, !apps.isEmpty {
+        Divider()
+        AppsList(apps: apps)
       }
       Divider()
       HStack {
+        Text("Updated every 2 s")
+          .font(.caption)
+          .foregroundStyle(.secondary)
         Spacer()
         Button("Quit") { NSApplication.shared.terminate(nil) }
           .keyboardShortcut("q")
+          .controlSize(.small)
       }
     }
     .padding(14)
-    .frame(width: 320)
+    .frame(width: 340)
+    .transaction { $0.disablesAnimations = true }
   }
-}
 
-private struct SectionView<Content: View>: View {
-  let title: String
-  @ViewBuilder let content: Content
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title).font(.headline)
-      content
-    }
-    .font(.callout)
-    .monospacedDigit()
-    .labeledContentStyle(TrailingValueStyle())
-  }
-}
-
-private struct TrailingValueStyle: LabeledContentStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    HStack {
-      configuration.label
+  private var header: some View {
+    HStack(spacing: 8) {
+      Circle()
+        .fill(stats?.memory?.pressure.color ?? Color.secondary)
+        .frame(width: 10, height: 10)
+      Text(stats?.memory?.pressure.verdict ?? "Memory")
+        .font(.title3.weight(.semibold))
       Spacer()
-      configuration.content
+      if let memory = stats?.memory {
+        VStack(alignment: .trailing, spacing: 0) {
+          Text("\(Format.percent(memory.usedFraction)) used")
+            .foregroundStyle(.secondary)
+          Text("Swap \(Format.memory(memory.swapUsed))")
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+        }
+        .monospacedDigit()
+      }
+    }
+    .accessibilityElement(children: .combine)
+  }
+
+  private var pressureTrack: some View {
+    let values = samples.map(\.pressureFraction)
+    return TrackRow(
+      label: "Pressure",
+      graph: TrackGraph(
+        capacity: history.capacity,
+        above: TrackSeries(values: values, colors: samples.map { ($0.pressure ?? .normal).color })
+      ),
+      accessibilityValue: describe(
+        Format.percent(values.last ?? nil), range(values, Format.percent))
+    ) {
+      VStack(alignment: .trailing, spacing: 0) {
+        Text(Format.percent(values.last ?? nil))
+        ValueCaption(text: "pressure")
+      }
     }
   }
-}
 
-private struct MemorySection: View {
-  let memory: MemoryStats
+  private var cpuTrack: some View {
+    let values = samples.map(\.cpuFraction)
+    return TrackRow(
+      label: "CPU",
+      graph: TrackGraph(
+        capacity: history.capacity, above: TrackSeries(values: values, color: .blue)),
+      accessibilityValue: describe(
+        Format.percent(stats?.cpuFraction), range(values, Format.percent))
+    ) {
+      VStack(alignment: .trailing, spacing: 0) {
+        Text(Format.percent(stats?.cpuFraction))
+        ValueCaption(text: "all cores")
+      }
+    }
+  }
 
-  var body: some View {
-    SectionView(title: "Memory") {
-      LabeledContent("Pressure") {
-        HStack(spacing: 4) {
-          Image(nsImage: memory.pressure.dot)
-          Text(memory.pressure.title)
+  private var diskTrack: some View {
+    let reads = samples.map(\.diskRead)
+    let writes = samples.map(\.diskWrite)
+    let scaled = TrackScale.squareRootNormalized([reads, writes], floor: Self.diskFloor)
+    let current =
+      "read \(Format.rate(stats?.disk.readRate)), write \(Format.rate(stats?.disk.writeRate))"
+    let window = "read \(range(reads, Format.rate)), write \(range(writes, Format.rate))"
+    return TrackRow(
+      label: "Disk",
+      graph: TrackGraph(
+        capacity: history.capacity,
+        above: TrackSeries(values: scaled.series[0], color: .orange),
+        below: TrackSeries(values: scaled.series[1], color: .orange),
+        scaleLabel: Format.rate(scaled.fullScale)),
+      accessibilityValue: describe(current, window)
+    ) {
+      VStack(alignment: .trailing, spacing: 0) {
+        DirectionalValue(marker: Text("R"), text: Format.rate(stats?.disk.readRate))
+        DirectionalValue(marker: Text("W"), text: Format.rate(stats?.disk.writeRate))
+        if let space = stats?.disk.space {
+          ValueCaption(text: "\(Format.disk(space.available)) free")
         }
       }
-      LabeledContent("Available to apps", value: "\(memory.availablePercent)%")
-      LabeledContent(
-        "Used",
-        value: "\(Format.memory(memory.breakdown.used)) of \(Format.memory(memory.total))")
-      ProgressView(value: min(memory.usedFraction, 1))
-        .tint(Color(nsColor: memory.pressure.color))
-      LabeledContent("App memory", value: Format.memory(memory.breakdown.app))
-      LabeledContent("Wired", value: Format.memory(memory.breakdown.wired))
-      LabeledContent("Compressed", value: Format.memory(memory.breakdown.compressed))
-      LabeledContent("Cached files", value: Format.memory(memory.breakdown.cachedFiles))
-      LabeledContent(
-        "Swap", value: "\(Format.memory(memory.swapUsed)) of \(Format.memory(memory.swapTotal))")
     }
   }
-}
 
-private struct AppRow: View {
-  let name: String
-  let processCount: Int
-  let value: String
-
-  var body: some View {
-    LabeledContent {
-      Text(value)
-    } label: {
-      HStack(spacing: 4) {
-        Text(name).lineLimit(1).truncationMode(.middle)
-        if processCount > 1 {
-          Text("×\(processCount)").foregroundStyle(.secondary)
-        }
+  private var networkTrack: some View {
+    let downs = samples.map(\.networkDown)
+    let ups = samples.map(\.networkUp)
+    let scaled = TrackScale.squareRootNormalized([downs, ups], floor: Self.networkFloor)
+    let current =
+      "down \(Format.rate(stats?.network.downRate)), up \(Format.rate(stats?.network.upRate))"
+    let window = "down \(range(downs, Format.rate)), up \(range(ups, Format.rate))"
+    return TrackRow(
+      label: "Network",
+      graph: TrackGraph(
+        capacity: history.capacity,
+        above: TrackSeries(values: scaled.series[0], color: .teal),
+        below: TrackSeries(values: scaled.series[1], color: .teal),
+        scaleLabel: Format.rate(scaled.fullScale)),
+      accessibilityValue: describe(current, window)
+    ) {
+      VStack(alignment: .trailing, spacing: 0) {
+        DirectionalValue(
+          marker: Text(Image(systemName: "arrow.down")), text: Format.rate(stats?.network.downRate))
+        DirectionalValue(
+          marker: Text(Image(systemName: "arrow.up")), text: Format.rate(stats?.network.upRate))
       }
     }
   }
-}
 
-private struct TopMemorySection: View {
-  let apps: [AppUsage<UInt64>]
-
-  var body: some View {
-    SectionView(title: "Top memory") {
-      ForEach(apps, id: \.name) { app in
-        AppRow(name: app.name, processCount: app.processCount, value: Format.memory(app.total))
-      }
-    }
+  private func describe(_ current: String, _ window: String) -> String {
+    "\(current), 5-minute range \(window)"
   }
-}
 
-private struct CPUSection: View {
-  let total: Double?
-  let apps: [AppUsage<Double>]
-
-  var body: some View {
-    SectionView(title: "CPU") {
-      LabeledContent("Total", value: Format.percent(total))
-      ForEach(apps, id: \.name) { app in
-        AppRow(
-          name: app.name, processCount: app.processCount, value: Format.percent(app.total / 100))
-      }
-    }
-  }
-}
-
-private struct DiskSection: View {
-  let disk: DiskStats
-
-  var body: some View {
-    SectionView(title: "Disk") {
-      if let space = disk.space {
-        LabeledContent(
-          "Free", value: "\(Format.disk(space.available)) of \(Format.disk(space.total))")
-      }
-      LabeledContent("Read", value: Format.rate(disk.readRate))
-      LabeledContent("Write", value: Format.rate(disk.writeRate))
-    }
-  }
-}
-
-private struct NetworkSection: View {
-  let network: NetworkStats
-
-  var body: some View {
-    SectionView(title: "Network") {
-      LabeledContent("Down", value: Format.rate(network.downRate))
-      LabeledContent("Up", value: Format.rate(network.upRate))
-    }
+  private func range(_ values: [Double?], _ format: (Double?) -> String) -> String {
+    let known = values.compactMap { $0 }
+    guard let low = known.min(), let high = known.max() else { return "not available yet" }
+    return "\(format(low))–\(format(high))"
   }
 }

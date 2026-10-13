@@ -5,6 +5,7 @@ import PulsebarKit
 @Observable
 final class StatsStore {
   private(set) var stats: Stats?
+  private(set) var history = RingBuffer<HistorySample>(capacity: TimelineAxis.capacity)
   private let collector = StatsCollector()
 
   init() {
@@ -13,7 +14,9 @@ final class StatsStore {
 
   private func run() async {
     while !Task.isCancelled {
-      stats = await collector.sample()
+      let sample = await collector.sample()
+      stats = sample
+      history.append(HistorySample(sample))
       try? await Task.sleep(for: .seconds(2))
     }
   }

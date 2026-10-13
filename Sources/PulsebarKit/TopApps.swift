@@ -1,25 +1,56 @@
-public struct AppUsage<Value: Numeric & Comparable & Sendable>: Equatable, Sendable {
-  public let name: String
-  public let processCount: Int
-  public let total: Value
+public struct ProcessUsage: Sendable {
+  public let app: AppIdentity
+  public let memory: UInt64
+  public let cpuShare: Double?
 
-  public init(name: String, processCount: Int, total: Value) {
-    self.name = name
+  public init(app: AppIdentity, memory: UInt64, cpuShare: Double?) {
+    self.app = app
+    self.memory = memory
+    self.cpuShare = cpuShare
+  }
+}
+
+public struct AppUsage: Equatable, Sendable {
+  public let app: AppIdentity
+  public let processCount: Int
+  public let memory: UInt64
+  public let cpuShare: Double?
+
+  public init(app: AppIdentity, processCount: Int, memory: UInt64, cpuShare: Double?) {
+    self.app = app
     self.processCount = processCount
-    self.total = total
+    self.memory = memory
+    self.cpuShare = cpuShare
   }
 }
 
 public enum TopApps {
-  public static func rank<Value>(_ entries: [(app: String, value: Value)], limit: Int)
-    -> [AppUsage<Value>]
-  {
-    let usages = Dictionary(grouping: entries, by: \.app).map { name, group in
-      AppUsage(name: name, processCount: group.count, total: group.map(\.value).reduce(0, +))
+  public static func aggregate(_ processes: [ProcessUsage]) -> [AppUsage] {
+    Dictionary(grouping: processes, by: \.app).map { app, group in
+      let shares = group.compactMap(\.cpuShare)
+      return AppUsage(
+        app: app,
+        processCount: group.count,
+        memory: group.map(\.memory).reduce(0, +),
+        cpuShare: shares.isEmpty ? nil : shares.reduce(0, +)
+      )
     }
-    let ranked = usages.sorted { lhs, rhs in
-      lhs.total == rhs.total ? lhs.name < rhs.name : lhs.total > rhs.total
-    }
-    return Array(ranked.prefix(max(limit, 0)))
+  }
+
+  public static func culprits(_ apps: [AppUsage], byMemory: Int, byCPU: Int) -> [AppUsage] {
+    let memoryLeaders = apps.sorted(by: memoryOrder).prefix(max(byMemory, 0))
+    let cpuLeaders = apps.filter { ($0.cpuShare ?? 0) > 0 }
+      .sorted { lhs, rhs in
+        lhs.cpuShare == rhs.cpuShare
+          ? lhs.app.name < rhs.app.name : (lhs.cpuShare ?? 0) > (rhs.cpuShare ?? 0)
+      }
+      .prefix(max(byCPU, 0))
+    let memoryApps = Set(memoryLeaders.map(\.app))
+    return (memoryLeaders + cpuLeaders.filter { !memoryApps.contains($0.app) })
+      .sorted(by: memoryOrder)
+  }
+
+  private static func memoryOrder(_ lhs: AppUsage, _ rhs: AppUsage) -> Bool {
+    lhs.memory == rhs.memory ? lhs.app.name < rhs.app.name : lhs.memory > rhs.memory
   }
 }

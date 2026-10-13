@@ -1,16 +1,17 @@
 import AppKit
 import PulsebarKit
+import SwiftUI
 
 extension PressureLevel {
-  var title: String {
+  var verdict: String {
     switch self {
-    case .normal: "Normal"
-    case .warning: "Warning"
-    case .critical: "Critical"
+    case .normal: "Memory: normal"
+    case .warning: "Memory: under pressure"
+    case .critical: "Memory: critical"
     }
   }
 
-  var color: NSColor {
+  var nsColor: NSColor {
     switch self {
     case .normal: .systemGreen
     case .warning: .systemYellow
@@ -18,14 +19,5 @@ extension PressureLevel {
     }
   }
 
-  var dot: NSImage {
-    let color = color
-    let image = NSImage(size: NSSize(width: 8, height: 8), flipped: false) { rect in
-      color.setFill()
-      NSBezierPath(ovalIn: rect).fill()
-      return true
-    }
-    image.isTemplate = false
-    return image
-  }
+  var color: Color { Color(nsColor: nsColor) }
 }

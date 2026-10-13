@@ -3,16 +3,25 @@ import Testing
 
 struct AppGroupingTests {
   @Test(arguments: [
-    ("/Applications/Firefox.app/Contents/MacOS/firefox", "Firefox"),
+    ("/Applications/Firefox.app/Contents/MacOS/firefox", "Firefox", "/Applications/Firefox.app"),
     (
       "/Applications/Firefox.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container",
-      "Firefox"
+      "Firefox", "/Applications/Firefox.app"
     ),
-    ("/Applications/Docker.app/Contents/MacOS/com.docker.sailor", "Docker"),
-    ("/Applications/Visual Studio Code.app/Contents/MacOS/Electron", "Visual Studio Code"),
+    (
+      "/Applications/Docker.app/Contents/MacOS/com.docker.sailor", "Docker",
+      "/Applications/Docker.app"
+    ),
+    (
+      "/Applications/Visual Studio Code.app/Contents/MacOS/Electron", "Visual Studio Code",
+      "/Applications/Visual Studio Code.app"
+    ),
+    ("Tools/Thing.app/Contents/MacOS/thing", "Thing", "Tools/Thing.app"),
   ])
-  func bundledPathUsesOutermostApp(path: String, expected: String) {
-    #expect(AppGrouping.appName(forExecutablePath: path) == expected)
+  func bundledPathUsesOutermostApp(path: String, name: String, bundlePath: String) {
+    #expect(
+      AppGrouping.identity(forExecutablePath: path)
+        == AppIdentity(name: name, bundlePath: bundlePath))
   }
 
   @Test(arguments: [
@@ -20,21 +29,16 @@ struct AppGroupingTests {
     ("/Users/me/.local/bin/claude", "claude"),
     ("bun", "bun"),
     ("/usr/libexec/app.applet/helper", "helper"),
+    ("/tmp/weird/Tool.app", "Tool.app"),
+    ("/opt/.app/bin/tool", "tool"),
   ])
-  func nonBundlePathUsesBasename(path: String, expected: String) {
-    #expect(AppGrouping.appName(forExecutablePath: path) == expected)
-  }
-
-  @Test func executableNamedLikeBundleUsesBasename() {
-    #expect(AppGrouping.appName(forExecutablePath: "/tmp/weird/Tool.app") == "Tool.app")
-  }
-
-  @Test func bareAppSuffixDirectoryIsNotABundle() {
-    #expect(AppGrouping.appName(forExecutablePath: "/opt/.app/bin/tool") == "tool")
+  func nonBundlePathUsesBasename(path: String, name: String) {
+    #expect(
+      AppGrouping.identity(forExecutablePath: path) == AppIdentity(name: name, bundlePath: nil))
   }
 
   @Test(arguments: ["", "/", "///"])
-  func emptyPathHasNoName(path: String) {
-    #expect(AppGrouping.appName(forExecutablePath: path) == nil)
+  func emptyPathHasNoIdentity(path: String) {
+    #expect(AppGrouping.identity(forExecutablePath: path) == nil)
   }
 }

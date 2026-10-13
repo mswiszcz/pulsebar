@@ -13,11 +13,6 @@ public struct MemoryStats: Sendable {
   public var usedFraction: Double { Double(breakdown.used) / Double(total) }
 }
 
-public struct ProcessStats: Sendable {
-  public let topMemory: [AppUsage<UInt64>]
-  public let topCPU: [AppUsage<Double>]
-}
-
 public struct DiskSpace: Sendable {
   public let available: Int64
   public let total: Int64
@@ -36,7 +31,7 @@ public struct NetworkStats: Sendable {
 
 public struct Stats: Sendable {
   public let memory: MemoryStats?
-  public let processes: ProcessStats
+  public let apps: [AppUsage]
   public let cpuFraction: Double?
   public let disk: DiskStats
   public let network: NetworkStats

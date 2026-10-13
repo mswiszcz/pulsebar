@@ -6,7 +6,7 @@ tags: [macos, menubar, swift]
 
 A small native macOS menu bar utility that shows real system load: memory pressure, the apps using the most memory and CPU, disk and network throughput.
 
-The menu bar shows a pressure dot, memory used % and total CPU %, e.g. `● 62% · 14%`. Click it for the detail popover.
+The menu bar shows a pressure dot, memory used % and total CPU %, e.g. `● 62% [cpu] 14%`. Click it to open the timeline panel.
 
 Requires macOS 14+. Menu-bar only (`LSUIElement`), no Dock icon, no settings, no login item.
 
@@ -25,7 +25,7 @@ Works with the Command Line Tools alone (no Xcode).
 > [!warning] Run tests through `make test`
 > With only the Command Line Tools installed, plain `swift test` builds the tests and then silently runs **zero** of them, because SwiftPM can't find `Testing.framework` on its own. `make test` passes the framework search path and rpath.
 
-Quit from the popover's **Quit** button (⌘Q while it is open).
+Quit from the panel's **Quit** button (⌘Q while it is open).
 
 ## What the numbers mean
 
@@ -34,8 +34,28 @@ Pulsebar samples every 2 s. Rates (CPU per app, disk, network) are deltas betwee
 ### Menu bar
 
 - **Dot**: the kernel's memory pressure level. Green = normal, yellow = warning, red = critical.
-- **First %**: memory used (see below) as a share of physical RAM.
-- **Second %**: total CPU busy time (user + system) across all cores.
+- **First %** (after the `memorychip` symbol): memory used (see below) as a share of physical RAM.
+- **Second %** (after the `cpu` symbol): total CPU busy time (user + system) across all cores.
+- Numbers are padded with figure spaces so the label keeps the same width as values change. The padding goes before each symbol, so every symbol stays next to its number.
+
+## The panel
+
+The panel is a timeline. Four tracks share one time axis covering the last 5 minutes (150 samples, 2 s apart). The newest sample is at the right edge, marked by a faint "now" line. Faint vertical ticks mark each minute, and a ruler under the tracks reads "5 min … now". A spike in one track lines up with what the other tracks were doing at that moment. History is kept in memory only, and the tracks start empty after launch and fill in from the right.
+
+| Part | Shows |
+| --- | --- |
+| Header | Pressure verdict ("Memory: normal" / "under pressure" / "critical") with the level dot. On the right: memory **used %** (the same number as the menu bar) and swap used |
+| Memory bar | Physical RAM split into App / Wired / Compressed / Cache / free (the empty part), with a legend in GB |
+| Pressure track | Pressure % (100 − `kern.memorystatus_level`), colored by the pressure level at each sample, labeled "pressure" |
+| CPU track | Total CPU busy %, labeled "all cores" |
+| Disk track | Read above the center line, write mirrored below (lighter), with current R / W rates and free space on `/` |
+| Network track | Down above the center line, up mirrored below, with current ↓ / ↑ rates |
+| Apps | The top 6 apps by memory plus the top 3 by CPU, sorted by memory. Shows the app icon (a terminal symbol for non-bundle processes), `×N` processes, memory (GB with one decimal, MB as whole numbers) and CPU as a share of all cores (orange once an app uses more than one full core). CPU shows `—` until the second sample. Clicking a row opens Activity Monitor |
+
+Each track is a single VoiceOver element. It reads the track name, the current value and the 5-minute min–max range. App rows read as "Docker, 8 processes, 5.8 GB memory, 2.3% CPU", with the hint "Opens Activity Monitor".
+
+> [!note] Rate tracks use a square-root scale
+> Disk and network tracks scale to the highest value in the window, but never below a floor: 1 MB/s for disk, 100 KB/s for network. That way 1–2 KB/s of idle chatter stays a sliver instead of filling the track. Read/write (or down/up) share one scale, and the current full-scale value is shown faintly at the top left of the graph. Heights are the square root of value ÷ full scale. On a linear scale, a single 50 MB/s burst flattens a steady 100 KB/s to a line on the baseline. A log scale makes idle noise look like activity and needs an arbitrary floor. Square root keeps spikes as the tallest marks but leaves the baseline activity visible.
 
 ### Memory
 
@@ -55,11 +75,11 @@ Pulsebar samples every 2 s. Rates (CPU per app, disk, network) are deltas betwee
 >
 > **Pressure** and **Available to apps** (`kern.memorystatus_level`) are the kernel's own view of how much memory it can still hand out. That includes cached files it can drop and memory it can still compress. This is the number behind Activity Monitor's pressure graph.
 >
-> If you see 80% used and 75% available at the same time, that's normal. Start worrying when the dot turns yellow or red, available drops low and swap keeps growing.
+> If you see 67% used and 17% pressure (83% available) at the same time, that's normal. Start worrying when the dot turns yellow or red, pressure climbs and swap keeps growing.
 
-### Top memory
+### Apps
 
-The six apps with the highest total **memory footprint** (`ri_phys_footprint`, the "Memory" column in Activity Monitor). This includes compressed memory, so it can differ from RSS in `ps`.
+App memory is the total **memory footprint** (`ri_phys_footprint`, the "Memory" column in Activity Monitor). This includes compressed memory, so it can differ from RSS in `ps`.
 
 Processes are grouped into apps by their launch path:
 
@@ -75,7 +95,7 @@ The launch path comes from `KERN_PROCARGS2` (the path that was exec'd, before sy
 ### CPU
 
 - **Total**: share of all CPU ticks that were user or system time since the last sample (`host_processor_info`). It should match the user + sys figures in `top`.
-- **Per app**: CPU time used during the last interval (`ri_user_time + ri_system_time`). **100% = one full core**, so a busy app can go above 100%. Apps at 0% are hidden.
+- **Per app** (Apps list): CPU time used during the last interval (`ri_user_time + ri_system_time`), divided by the number of logical cores. It's a share of the whole machine, comparable with Total: an app pinning one core on a 14-core Mac shows about 7%. An app joins the list for CPU only if it's above 0%.
 
 ### Disk
 
@@ -90,7 +110,9 @@ The launch path comes from `KERN_PROCARGS2` (the path that was exec'd, before sy
 
 | Path | Contents |
 | --- | --- |
-| `Sources/PulsebarKit` | Pure logic (app grouping, rates, top-N ranking, memory math, CPU ticks, procargs parsing), the samplers and the `Stats` model |
-| `Sources/Pulsebar` | SwiftUI `MenuBarExtra` app, popover and menu bar label |
+| `Sources/PulsebarKit` | Pure logic (app grouping, rates, app aggregation and culprit list, memory math, CPU ticks, procargs parsing, history ring buffer, track scale), the samplers and the `Stats` model |
+| `Sources/Pulsebar` | SwiftUI `MenuBarExtra` app, timeline panel (tracks, memory composition, apps list) and menu bar label |
 | `Tests/PulsebarKitTests` | swift-testing tests for the pure logic |
 | `Support/Info.plist` | Bundle metadata used by `make build` |
+| `docs/design-contract.md` | The approved design direction for the panel |
+| `PRODUCT.md` | Product context: users, purpose, principles |

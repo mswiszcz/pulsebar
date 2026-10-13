@@ -3,9 +3,23 @@ import Foundation
 enum Format {
   private static let bytes = ByteCountFormatStyle(style: .memory, spellsOutZero: false)
   private static let storage = ByteCountFormatStyle(style: .file, spellsOutZero: false)
+  private static let gibibyte = 1_073_741_824.0
+  private static let mebibyte = 1_048_576.0
 
   static func memory(_ value: UInt64) -> String {
     bytes.format(Int64(value))
+  }
+
+  static func gigabytes(_ value: UInt64) -> String {
+    (Double(value) / gibibyte).formatted(.number.precision(.fractionLength(1)))
+  }
+
+  static func appMemory(_ value: UInt64) -> String {
+    let amount = Double(value)
+    guard amount >= gibibyte else {
+      return "\((amount / mebibyte).formatted(.number.precision(.fractionLength(0)))) MB"
+    }
+    return "\(gigabytes(value)) GB"
   }
 
   static func disk(_ value: Int64) -> String {
@@ -18,5 +32,13 @@ enum Format {
 
   static func percent(_ fraction: Double?) -> String {
     fraction.map { $0.formatted(.percent.precision(.fractionLength(0))) } ?? "—"
+  }
+
+  static func cpuShare(_ share: Double?) -> String {
+    share.map { $0.formatted(.percent.precision(.fractionLength($0 < 0.1 ? 1 : 0))) } ?? "—"
+  }
+
+  static func wholePercent(_ fraction: Double?) -> String {
+    fraction.map { "\(Int((min(max($0, 0), 1) * 100).rounded()))%" } ?? "–%"
   }
 }

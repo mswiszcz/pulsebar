@@ -1,0 +1,90 @@
+import SwiftUI
+
+enum TrackLayout {
+  static let labelWidth: CGFloat = 50
+  static let valueWidth: CGFloat = 84
+  static let spacing: CGFloat = 8
+  static let graphHeight: CGFloat = 40
+}
+
+enum TimelineAxis {
+  static let capacity = 150
+  static let samplesPerMinute = 30
+
+  static func minuteTicks(capacity: Int) -> [(minutesAgo: Int, fraction: CGFloat)] {
+    let last = capacity - 1
+    return (1...4).compactMap { minutes in
+      let slot = last - minutes * samplesPerMinute
+      return slot > 0 ? (minutes, CGFloat(slot) / CGFloat(last)) : nil
+    }
+  }
+}
+
+struct TrackRow<Value: View>: View {
+  let label: String
+  let graph: TrackGraph
+  let accessibilityValue: String
+  @ViewBuilder let value: Value
+
+  var body: some View {
+    HStack(spacing: TrackLayout.spacing) {
+      Text(label)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .frame(width: TrackLayout.labelWidth, alignment: .leading)
+      graph
+      value
+        .font(.callout)
+        .monospacedDigit()
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
+        .frame(width: TrackLayout.valueWidth, alignment: .trailing)
+    }
+    .frame(height: TrackLayout.graphHeight)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(label)
+    .accessibilityValue(accessibilityValue)
+  }
+}
+
+struct DirectionalValue: View {
+  let marker: Text
+  let text: String
+
+  var body: some View {
+    HStack(spacing: 3) {
+      marker
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(.secondary)
+      Text(text)
+    }
+  }
+}
+
+struct ValueCaption: View {
+  let text: String
+
+  var body: some View {
+    Text(text)
+      .font(.caption2)
+      .foregroundStyle(.secondary)
+  }
+}
+
+struct TimeRuler: View {
+  var body: some View {
+    HStack(spacing: TrackLayout.spacing) {
+      Color.clear.frame(width: TrackLayout.labelWidth, height: 0)
+      HStack {
+        Text("5 min")
+        Spacer()
+        Text("now")
+      }
+      Color.clear.frame(width: TrackLayout.valueWidth, height: 0)
+    }
+    .frame(height: 12)
+    .font(.caption2)
+    .foregroundStyle(.tertiary)
+    .accessibilityHidden(true)
+  }
+}
