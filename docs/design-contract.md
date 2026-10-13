@@ -6,6 +6,6 @@
 
 **STORY**: Open the panel and see at a glance whether memory pressure is a problem now and over the last 5 minutes, what CPU, disk and network are doing, and which app is the culprit. Click the culprit to open Activity Monitor.
 
-**FIRST VIEWPORT**: About 340 pt wide, no scrolling. Pressure verdict header; Pressure, CPU, Disk and Network tracks with live values; Apps list; "Updated every 2 s" and Quit.
+**FIRST VIEWPORT**: About 340 pt wide, no scrolling. Pressure verdict header; Pressure, CPU, Disk and Network tracks with live values; Apps list; Homelab section (~20 pt per server, shown when servers are configured; still no scrolling with up to 6 collapsed servers); "Updated every 2 s" and Quit.
 
 **FORM**: Aligned timeline tracks, candidate 7, seed key 3fe8761d.
