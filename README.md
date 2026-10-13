@@ -6,7 +6,7 @@ tags: [macos, menubar, swift]
 
 A small native macOS menu bar utility that shows real system load: memory pressure, the apps using the most memory and CPU, disk and network throughput, and the health of your homelab servers.
 
-The menu bar shows a pressure dot, memory used % and total CPU %, e.g. `● 62% [cpu] 14%`. Click it to open the timeline panel.
+The menu bar shows memory used % and total CPU %, e.g. `[memorychip] 62% [cpu] 14%`, with the memory symbol colored by memory pressure. Click it to open the timeline panel.
 
 Requires macOS 14+. Menu-bar only (`LSUIElement`), no Dock icon.
 
@@ -61,7 +61,7 @@ Pulsebar samples every 2 s. Rates (CPU per app, disk, network) are deltas betwee
 
 ### Menu bar
 
-- **Dot**: the kernel's memory pressure level. Green = normal, yellow = warning, red = critical.
+- **`memorychip` symbol**: colored by the kernel's memory pressure level. Green = normal, yellow = warning, red = critical.
 - **First %** (after the `memorychip` symbol): memory used (see below) as a share of physical RAM.
 - **Second %** (after the `cpu` symbol): total CPU busy time (user + system) across all cores.
 - Numbers are padded with figure spaces so the label keeps the same width as values change. The padding goes before each symbol, so every symbol stays next to its number.

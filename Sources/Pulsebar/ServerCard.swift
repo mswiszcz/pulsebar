@@ -5,6 +5,7 @@ import SwiftUI
 
 enum PanelLayout {
   static let width: CGFloat = 425
+  static let scrim = Color(nsColor: .windowBackgroundColor).opacity(0.6)
 }
 
 enum ServerCardLayout {
@@ -128,6 +129,7 @@ private struct DeckCard: View {
           .transition(.opacity)
       }
     }
+    .background(PanelLayout.scrim)
     .background(EffectBackground(surface: surface))
     .clipShape(shape)
     .overlay(shape.strokeBorder(outline, lineWidth: 1))

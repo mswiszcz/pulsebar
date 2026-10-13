@@ -31,7 +31,7 @@ It reports memory the way the kernel judges it — pressure level and `kern.memo
 
 - Swift Package Manager only; Command Line Tools, no Xcode. No third-party dependencies.
 - Processes owned by root or other users cannot be read without root and are not listed.
-- Menu bar label: pressure dot, memory used %, CPU %.
+- Menu bar label: pressure-colored memory symbol, memory used %, CPU %.
 - Expandable app rows: top 5 processes with role (Chromium/Electron `--type`, Firefox `-contentproc`), working directory for non-bundle tools (`claude`, `node`), uptime. Docker expands to running containers from the Docker Engine API.
 - Growth badge: an app that grew ≥ 500 MB over the last 10 min is flagged on its row.
 - Homelab servers: a panel section with one row per node_exporter server on the LAN (CPU, RAM, VRAM for AMD GPUs, uptime), expandable into 5-minute tracks, load, disk, network and GPU memory. Panel only: the menu bar and notifications stay about this Mac.

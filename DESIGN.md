@@ -92,7 +92,7 @@ Density is high but quiet. Color is spent only on data: one accent per track, an
 Semantic system colors only. Hex values are the light-appearance `NSColor` resolutions; the code names the system color, and dark and increased-contrast variants come from AppKit. See `.impeccable/design.json` for dark values.
 
 ### Primary
-- **Pressure Green / Yellow / Red** (`systemGreen`, `systemYellow`, `systemRed`): kernel pressure level. Drives the header dot, the menu bar dot, the "App" segment of the composition bar, and the Pressure track, which recolors per sample so a past warning stays yellow in history.
+- **Pressure Green / Yellow / Red** (`systemGreen`, `systemYellow`, `systemRed`): kernel pressure level. Drives the header dot, the menu bar `memorychip` symbol, the "App" segment of the composition bar, and the Pressure track, which recolors per sample so a past warning stays yellow in history.
 
 ### Secondary
 - **CPU Blue** (`systemBlue`): CPU track only.
@@ -146,7 +146,7 @@ Footer: "Updated every 2 s" left; `waveform.path.ecg.rectangle` borderless butto
 
 ## Elevation & Depth
 
-Flat. No shadows, materials, glass or gradients inside the panel; the only depth is the system `MenuBarExtra` window. Separation comes from `Divider()` rules and spacing. Area fills under graph lines are translucent tints of the track hue (28%, 50% under increased contrast), not shading.
+Flat. No shadows, materials, glass or gradients inside the panel; the only depth is the system `MenuBarExtra` window. Its material sits under a 60% `windowBackgroundColor` scrim (shared with the server cards) so a bright window behind does not wash the panel out. Separation comes from `Divider()` rules and spacing. Area fills under graph lines are translucent tints of the track hue (28%, 50% under increased contrast), not shading.
 
 ### Named Rules
 **The Window Is The Only Surface Rule.** No cards or inset panels inside the panel. Groups are separated by space and hairline dividers.
@@ -155,7 +155,7 @@ Flat. No shadows, materials, glass or gradients inside the panel; the only depth
 
 ## Shapes
 
-Rectangular and hairline. Graph rules are one device pixel. Graph lines are 1 pt with round joins. Corners appear only on the app row hover highlight (6 pt) and the composition bar (2 pt, 5 pt tall). Circles are reserved for status: pressure dot (10 pt header, 8 pt menu bar) and legend swatches (5 pt).
+Rectangular and hairline. Graph rules are one device pixel. Graph lines are 1 pt with round joins. Corners appear only on the app row hover highlight (6 pt) and the composition bar (2 pt, 5 pt tall). Circles are reserved for status: pressure dot (10 pt header) and legend swatches (5 pt).
 
 ## Components
 
@@ -187,7 +187,7 @@ Plain button, whole row clickable, toggles an inline disclosure; tooltip "Show p
 SwiftUI `Settings` scene, `Form` with `.formStyle(.grouped)`, 420 pt wide, height fits content. Section 1: "Launch at login" toggle; when approval is needed, a secondary line "Approve in System Settings › General › Login Items" with an "Open Login Items" button; errors inline as a secondary `exclamationmark.triangle` label, and the toggle reverts to the real status. Section 2: "Notify when memory is under pressure" toggle and "Notify at" picker (Warning / Critical only), disabled while notifications are off.
 
 ### Menu Bar Label
-Pressure dot (non-template 8 pt image, keeps its color), `memorychip` SF Symbol, memory %, `cpu` SF Symbol, CPU %. Symbols render monochrome (menu bar template tint); padding sits before each symbol. Whole percent, figure-space padded, tabular digits.
+`memorychip` SF Symbol in the pressure color (label color before the first sample), memory %, `cpu` SF Symbol in label color, CPU %. The label is a non-template image so the tint survives; padding sits before each symbol. Whole percent, figure-space padded, tabular digits.
 
 ### Buttons
 Borderless glyph buttons in the footer (`waveform.path.ecg.rectangle` Activity Monitor, `gearshape` Settings, `power` Quit), link-style "Open in Activity Monitor". No custom button styling.

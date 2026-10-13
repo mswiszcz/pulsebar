@@ -10,11 +10,11 @@ struct MenuBarLabel: View {
     Image(
       nsImage: MenuBarImage.make(
         colorScheme: colorScheme,
-        pressure: stats?.memory?.pressure,
         readings: [
           MenuBarReading(
             name: "Memory", symbol: "memorychip",
-            value: Format.wholePercent(stats?.memory?.usedFraction)),
+            value: Format.wholePercent(stats?.memory?.usedFraction),
+            pressure: stats?.memory?.pressure),
           MenuBarReading(
             name: "CPU", symbol: "cpu", value: Format.wholePercent(stats?.cpuFraction)),
         ]))
@@ -25,32 +25,25 @@ struct MenuBarReading: Equatable, Sendable {
   let name: String
   let symbol: String
   let value: String
+  var pressure: PressureLevel?
 }
 
 @MainActor
 enum MenuBarImage {
   private static let height: CGFloat = 16
-  private static let dotSize: CGFloat = 8
   private static let symbolGap: CGFloat = 3
   private static let readingGap: CGFloat = 8
   private static let widestValue = "100%"
 
-  private static var last:
-    (
-      colorScheme: ColorScheme, pressure: PressureLevel?, readings: [MenuBarReading], image: NSImage
-    )?
+  private static var last: (colorScheme: ColorScheme, readings: [MenuBarReading], image: NSImage)?
   private static var slotWidths: [String: CGFloat] = [:]
 
-  static func make(
-    colorScheme: ColorScheme, pressure: PressureLevel?, readings: [MenuBarReading]
-  ) -> NSImage {
-    if let last,
-      (last.colorScheme, last.pressure, last.readings) == (colorScheme, pressure, readings)
-    {
+  static func make(colorScheme: ColorScheme, readings: [MenuBarReading]) -> NSImage {
+    if let last, (last.colorScheme, last.readings) == (colorScheme, readings) {
       return last.image
     }
-    let image = draw(pressure: pressure, readings: readings)
-    last = (colorScheme, pressure, readings, image)
+    let image = draw(readings: readings)
+    last = (colorScheme, readings, image)
     return image
   }
 
@@ -61,18 +54,14 @@ enum MenuBarImage {
     return width
   }
 
-  private static func draw(pressure: PressureLevel?, readings: [MenuBarReading]) -> NSImage {
+  private static func draw(readings: [MenuBarReading]) -> NSImage {
     let slot = readings.map { slotWidth($0.symbol) }
-    let width = dotSize + readingGap + slot.reduce(0, +) + readingGap * CGFloat(readings.count - 1)
-    let dotColor = pressure?.nsColor ?? .tertiaryLabelColor
+    let width = slot.reduce(0, +) + readingGap * CGFloat(readings.count - 1)
     let image = NSImage(size: NSSize(width: ceil(width), height: height), flipped: false) { _ in
       let ink = NSColor.labelColor
-      dotColor.setFill()
-      NSBezierPath(ovalIn: NSRect(x: 0, y: (height - dotSize) / 2, width: dotSize, height: dotSize))
-        .fill()
-      var slotStart = dotSize + readingGap
+      var slotStart: CGFloat = 0
       for (reading, slotWidth) in zip(readings, slot) {
-        let symbol = glyph(reading.symbol, color: ink)
+        let symbol = glyph(reading.symbol, color: reading.pressure?.nsColor ?? ink)
         let text = NSAttributedString(string: reading.value, attributes: attributes(ink))
         let contentWidth = symbol.size.width + symbolGap + text.size().width
         let x = slotStart + slotWidth - contentWidth
