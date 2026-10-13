@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    env:
+      VERSION: 0.1.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+
+      - name: Build universal app
+        run: make build ARCHS="arm64 x86_64" VERSION="$VERSION" BUILD_NUMBER="${{ github.run_number }}"
+
+      - name: Package
+        run: ditto -c -k --keepParent build/Pulsebar.app "Pulsebar-$VERSION.zip"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v$VERSION" "Pulsebar-$VERSION.zip"
+          --target "$GITHUB_SHA"
+          --title "Pulsebar $VERSION"
+          --generate-notes
+          --notes-file .github/release-notes.md

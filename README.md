@@ -10,6 +10,20 @@ The menu bar shows a pressure dot, memory used % and total CPU %, e.g. `● 62% 
 
 Requires macOS 14+. Menu-bar only (`LSUIElement`), no Dock icon.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/panel-dark.png">
+  <img src="docs/images/panel-light.png" alt="Pulsebar panel: memory verdict, aligned 5-minute tracks for pressure, CPU, disk and network, and the apps list with a growth badge" width="340">
+</picture>
+
+## Install
+
+Download the latest `Pulsebar-<version>.zip` from [Releases](https://github.com/mswiszcz/pulsebar/releases), unzip, move `Pulsebar.app` to `~/Applications`, open it.
+
+> [!warning] Not notarized
+> Release builds are ad-hoc signed, so macOS blocks the first launch. Click **Open Anyway** in System Settings › Privacy & Security, or run `xattr -dr com.apple.quarantine ~/Applications/Pulsebar.app`.
+
+Every push to `main` publishes a release (`.github/workflows/release.yml`): lint, test, universal build, zip, GitHub release `v0.1.<run number>`.
+
 ## Build, run, install
 
 Works with the Command Line Tools alone (no Xcode).
@@ -21,6 +35,8 @@ Works with the Command Line Tools alone (no Xcode).
 | `make install` | builds and copies it to `~/Applications/Pulsebar.app` |
 | `make test` | runs the unit tests |
 | `make lint` | `swift format lint --strict` on the sources and tests |
+
+`make build` options: `VERSION=0.1.5 BUILD_NUMBER=5` stamp the bundle version; `ARCHS="arm64 x86_64"` builds a universal binary (needs full Xcode, as on the CI runner).
 
 > [!warning] Run tests through `make test`
 > With only the Command Line Tools installed, plain `swift test` builds the tests and then silently runs **zero** of them, because SwiftPM can't find `Testing.framework` on its own. `make test` passes the framework search path and rpath.
