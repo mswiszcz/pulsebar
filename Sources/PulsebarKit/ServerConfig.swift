@@ -33,13 +33,15 @@ public enum ServerURL {
     return components.url
   }
 
-  public static func metricsRequest(_ url: URL) -> URL {
+  public static func metricsRequest(_ url: URL, includeGPU: Bool = true) -> URL {
     guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
       return url
     }
     components.queryItems =
       (components.queryItems ?? [])
-      + collectors.map { URLQueryItem(name: "collect[]", value: $0) }
+      + collectors.filter { includeGPU || $0 != "drm" }.map {
+        URLQueryItem(name: "collect[]", value: $0)
+      }
     return components.url ?? url
   }
 }

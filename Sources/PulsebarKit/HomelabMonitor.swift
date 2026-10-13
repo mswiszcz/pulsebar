@@ -64,9 +64,17 @@ public actor HomelabMonitor {
   }
 
   public nonisolated func fetch(_ url: URL) async -> Result<NodeMetrics, FailureReason> {
+    let result = await fetch(url, includeGPU: true)
+    guard case .failure(.httpStatus(400)) = result else { return result }
+    return await fetch(url, includeGPU: false)
+  }
+
+  private nonisolated func fetch(
+    _ url: URL, includeGPU: Bool
+  ) async -> Result<NodeMetrics, FailureReason> {
     do {
       let (bytes, response) = try await session.bytes(
-        for: URLRequest(url: ServerURL.metricsRequest(url)))
+        for: URLRequest(url: ServerURL.metricsRequest(url, includeGPU: includeGPU)))
       guard let http = response as? HTTPURLResponse else {
         return .failure(.other("Not an HTTP response"))
       }

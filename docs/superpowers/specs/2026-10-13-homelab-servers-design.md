@@ -43,7 +43,7 @@ Extend Pulsebar to show the health of homelab servers — CPU, RAM, VRAM, uptime
 
 `GET <url>?collect[]=cpu&collect[]=meminfo&collect[]=loadavg&collect[]=stat&collect[]=time&collect[]=filesystem&collect[]=netdev&collect[]=drm`
 
-The `collect[]` filter makes node_exporter run only these collectors, so the body is a few KB instead of ~100 KB. If the configured URL already has a query, the parameters are appended. A collector that is not enabled on the server (`drm` without `--collector.drm`) is ignored by node_exporter.
+The `collect[]` filter makes node_exporter run only these collectors, so the body is a few KB instead of ~100 KB. If the configured URL already has a query, the parameters are appended. node_exporter answers 400 when `collect[]` names a disabled collector (`disabled collector: drm`), so a 400 is retried once without `drm`.
 
 ### Prometheus text parser (`PulsebarKit/PrometheusText.swift`)
 

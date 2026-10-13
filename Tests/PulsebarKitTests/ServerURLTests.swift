@@ -29,6 +29,15 @@ struct ServerURLTests {
         + "&collect%5B%5D=filesystem&collect%5B%5D=netdev&collect%5B%5D=drm")
   }
 
+  @Test func metricsRequestOmitsDRMWithoutGPU() throws {
+    let url = try #require(ServerURL.normalize("nas.lan"))
+    #expect(
+      ServerURL.metricsRequest(url, includeGPU: false).absoluteString
+        == "http://nas.lan:9100/metrics?collect%5B%5D=cpu&collect%5B%5D=meminfo"
+        + "&collect%5B%5D=loadavg&collect%5B%5D=stat&collect%5B%5D=time"
+        + "&collect%5B%5D=filesystem&collect%5B%5D=netdev")
+  }
+
   @Test func metricsRequestAppendsAfterExistingQuery() throws {
     let url = try #require(ServerURL.normalize("https://x.lan/node/metrics?foo=1"))
     #expect(

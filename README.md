@@ -272,6 +272,7 @@ A counter that goes backwards, for example after a server reboot, leaves a gap i
 - After 3 consecutive failures, a server is polled every 60 s. One success returns it to 10 s.
 - Opening the panel refreshes any server whose last reading is older than 10 s.
 - Pulsebar asks node_exporter only for the collectors it uses (`collect[]`: `cpu`, `meminfo`, `loadavg`, `stat`, `time`, `filesystem`, `netdev`, `drm`). A request times out after 3 s, and a response over 2 MB counts as a failure.
+- node_exporter answers 400 when `collect[]` names a disabled collector, so a 400 is retried once without `drm`.
 - History is kept in memory for 5 minutes and discarded on quit.
 
 Homelab servers are reached over the LAN only. Away from home, they are simply unreachable.
