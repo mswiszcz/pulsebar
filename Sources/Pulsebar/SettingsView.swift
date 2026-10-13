@@ -37,6 +37,7 @@ struct SettingsView: View {
         }
         .disabled(!notify)
       }
+      ServerSettingsSection()
     }
     .formStyle(.grouped)
     .frame(width: 420)
