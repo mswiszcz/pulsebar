@@ -10,9 +10,9 @@ struct ProcessSampler {
   private let home = FileManager.default.homeDirectoryForCurrentUser.path
   private var previousTicks: [ProcessID: UInt64] = [:]
   private var previousTime: Double?
-  private var argumentsBuffer = [UInt8](repeating: 0, count: Int(ARG_MAX))
-  private var roles: [ProcessID: String] = [:]
-  private var startDates: [ProcessID: Date] = [:]
+  private var identities = ProcessCache<AppIdentity?>()
+  private var roles = ProcessCache<String>()
+  private var startDates = ProcessCache<Date?>()
 
   init() {
     var timebase = mach_timebase_info()
@@ -26,13 +26,11 @@ struct ProcessSampler {
     var currentTicks: [ProcessID: UInt64] = [:]
 
     for pid in Self.allPIDs() {
-      guard let usage = Self.resourceUsage(pid),
-        let path = launchPath(pid) ?? Self.resolvedPath(pid),
-        let app = AppGrouping.identity(forExecutablePath: path)
-      else { continue }
+      guard let usage = Self.resourceUsage(pid) else { continue }
       let id = ProcessID(pid: pid, startTime: usage.ri_proc_start_abstime)
       let ticks = usage.ri_user_time + usage.ri_system_time
       currentTicks[id] = ticks
+      guard let app = identities.value(for: id, { Self.identity(pid) }) else { continue }
       let ticksPerSecond = CounterRate.perSecond(
         previous: previousTicks[id], current: ticks, interval: interval)
       processes.append(
@@ -43,6 +41,7 @@ struct ProcessSampler {
 
     previousTicks = currentTicks
     previousTime = time
+    identities.retain(Set(currentTicks.keys))
     let all = TopApps.aggregate(processes)
     let culprits = TopApps.culprits(all, byMemory: 6, byCPU: 3)
     return ProcessSnapshot(
@@ -66,12 +65,12 @@ struct ProcessSampler {
             label: label(for: process),
             memory: process.memory,
             cpuShare: process.cpuShare,
-            started: startDate(process.id)
+            started: startDates.value(for: process.id) { Self.startDate(process.id.pid) }
           )
         }
     }
-    roles = roles.filter { seen.contains($0.key) }
-    startDates = startDates.filter { seen.contains($0.key) }
+    roles.retain(seen)
+    startDates.retain(seen)
     return details
   }
 
@@ -80,13 +79,10 @@ struct ProcessSampler {
       return Self.workingDirectory(process.id.pid).map { PathAbbreviation.short($0, home: home) }
         ?? process.app.name
     }
-    if let role = roles[process.id] { return role }
-    let role = role(process.id.pid) ?? process.app.name
-    roles[process.id] = role
-    return role
+    return roles.value(for: process.id) { Self.role(process.id.pid) ?? process.app.name }
   }
 
-  private mutating func role(_ pid: pid_t) -> String? {
+  private static func role(_ pid: pid_t) -> String? {
     withProcArgs(pid) { bytes in
       ProcessArguments.executablePath(fromProcArgs: bytes).map { path in
         ProcessRole.name(
@@ -95,15 +91,12 @@ struct ProcessSampler {
     }
   }
 
-  private mutating func startDate(_ id: ProcessID) -> Date? {
-    if let date = startDates[id] { return date }
+  private static func startDate(_ pid: pid_t) -> Date? {
     var info = proc_bsdinfo()
     let size = Int32(MemoryLayout<proc_bsdinfo>.size)
-    guard proc_pidinfo(id.pid, PROC_PIDTBSDINFO, 0, &info, size) == size else { return nil }
-    let date = Date(
+    guard proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) == size else { return nil }
+    return Date(
       timeIntervalSince1970: Double(info.pbi_start_tvsec) + Double(info.pbi_start_tvusec) / 1e6)
-    startDates[id] = date
-    return date
   }
 
   private static func workingDirectory(_ pid: pid_t) -> String? {
@@ -133,19 +126,23 @@ struct ProcessSampler {
     return result == 0 ? usage : nil
   }
 
-  private mutating func launchPath(_ pid: pid_t) -> String? {
+  private static func identity(_ pid: pid_t) -> AppIdentity? {
+    (launchPath(pid) ?? resolvedPath(pid)).flatMap(AppGrouping.identity(forExecutablePath:))
+  }
+
+  private static func launchPath(_ pid: pid_t) -> String? {
     withProcArgs(pid) { ProcessArguments.executablePath(fromProcArgs: $0) }
   }
 
-  private mutating func withProcArgs<Result>(
+  private static func withProcArgs<Result>(
     _ pid: pid_t, _ body: (ArraySlice<UInt8>) -> Result?
   ) -> Result? {
     var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
-    var size = argumentsBuffer.count
-    guard sysctl(&mib, UInt32(mib.count), &argumentsBuffer, &size, nil, 0) == 0 else {
-      return nil
+    var size = Int(ARG_MAX)
+    let bytes = [UInt8](unsafeUninitializedCapacity: size) { buffer, count in
+      count = sysctl(&mib, UInt32(mib.count), buffer.baseAddress, &size, nil, 0) == 0 ? size : 0
     }
-    return body(argumentsBuffer[..<size])
+    return bytes.isEmpty ? nil : body(bytes[...])
   }
 
   private static func resolvedPath(_ pid: pid_t) -> String? {

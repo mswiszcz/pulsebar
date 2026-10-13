@@ -116,6 +116,8 @@ Processes are grouped into apps by their launch path:
 
 The launch path comes from `KERN_PROCARGS2` (the path that was exec'd, before symlinks are resolved). `proc_pidpath` is only a fallback, because it resolves symlinks. For example, `~/.local/bin/claude` would otherwise show up as its versioned target `2.1.296`.
 
+The app is looked up once per process (pid + start time) and cached until the process exits, so a sample only costs one `proc_pid_rusage` call per process. A process that `exec`s a different binary after Pulsebar first saw it keeps its first app.
+
 ### App details
 
 Click an app row to expand it. The chevron turns down and up to 5 of the app's processes are listed by memory, with memory and CPU:
