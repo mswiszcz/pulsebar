@@ -116,6 +116,8 @@ Processes are grouped into apps by their launch path:
 
 The launch path comes from `KERN_PROCARGS2` (the path that was exec'd, before symlinks are resolved). `proc_pidpath` is only a fallback, because it resolves symlinks. For example, `~/.local/bin/claude` would otherwise show up as its versioned target `2.1.296`.
 
+The app is looked up on a process's first two samples, then cached by pid + start time until the process exits, so a steady sample only costs one `proc_pid_rusage` call per process. The second lookup catches wrapper scripts that `exec` the real binary right after starting. A process that `exec`s a different binary more than 2 s after starting keeps its earlier app.
+
 ### App details
 
 Click an app row to expand it. The chevron turns down and up to 5 of the app's processes are listed by memory, with memory and CPU:
@@ -140,7 +142,7 @@ Docker's row lists running containers with memory and CPU, read from the Docker 
 
 - **Memory** is `usage − inactive_file` (`total_inactive_file` on cgroup v1), the same number as `docker stats`.
 - **CPU** is the change in container CPU time between two polls, as a share of all host cores like the app rows. `docker stats` shows the same value as a percentage of one core.
-- Polled every 15 s, on its own task, only while the panel is open or Docker is a top app. If the socket doesn't answer, the row says "Docker not reachable".
+- Polled every 15 s, on its own task, only while the panel is open or Docker is a top app. Opening the panel polls right away when the last poll is older than 15 s. If the socket doesn't answer, the row says "Docker not reachable".
 
 ## Pressure alerts
 
