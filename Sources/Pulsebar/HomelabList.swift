@@ -3,13 +3,13 @@ import PulsebarKit
 import SwiftUI
 
 private enum HomelabColumns {
+  static let gap: CGFloat = 4
   static let dotSize: CGFloat = 7
   static let cpuWidth: CGFloat = 48
   static let ramWidth: CGFloat = 48
   static let vramWidth: CGFloat = 58
-  static let uptimeWidth: CGFloat = 40
-  static let detailIndent =
-    AppColumns.disclosureWidth + AppColumns.gap + HomelabColumns.dotSize + AppColumns.spacing
+  static let uptimeWidth: CGFloat = 36
+  static let detailIndent = AppColumns.disclosureWidth + gap + dotSize + AppColumns.spacing
 }
 
 extension ServerSnapshot {
@@ -52,7 +52,7 @@ private struct HomelabRow: View {
   var body: some View {
     Button(action: toggle) {
       HStack(spacing: AppColumns.spacing) {
-        HStack(spacing: AppColumns.gap) {
+        HStack(spacing: HomelabColumns.gap) {
           Image(systemName: "chevron.right")
             .font(.system(size: 9, weight: .semibold))
             .foregroundStyle(.secondary)
@@ -67,8 +67,8 @@ private struct HomelabRow: View {
           .lineLimit(1)
           .truncationMode(.middle)
           .layoutPriority(1)
-        Spacer(minLength: 4)
         content
+          .frame(maxWidth: .infinity, alignment: .trailing)
       }
       .monospacedDigit()
       .padding(.horizontal, AppColumns.inset)
@@ -90,13 +90,16 @@ private struct HomelabRow: View {
   @ViewBuilder private var content: some View {
     switch server.state {
     case .unreachable(let lastSeen, _):
-      Text(lastSeen == nil ? "never reached" : "unreachable · \(HomelabText.lastSeen(lastSeen))")
+      let text =
+        lastSeen == nil
+        ? "never reached" : "unreachable · \(HomelabText.lastSeen(lastSeen, width: .abbreviated))"
+      Text(text)
         .font(.caption)
         .foregroundStyle(.secondary)
         .lineLimit(1)
     case .unknown, .up:
       let metrics = server.reading?.metrics
-      HStack(spacing: AppColumns.gap) {
+      HStack(spacing: HomelabColumns.gap) {
         MetricColumn(
           name: "CPU", fraction: server.reading?.rates.cpuFraction,
           width: HomelabColumns.cpuWidth)
@@ -125,12 +128,12 @@ private struct HomelabRow: View {
     case .unknown:
       return "\(name), not checked yet"
     case .unreachable(let lastSeen, _):
-      return "\(name), unreachable, \(HomelabText.lastSeen(lastSeen))"
+      return "\(name), unreachable, \(HomelabText.lastSeen(lastSeen, width: .wide))"
     case .up(let reading):
       let metrics = reading.metrics
       return [
         name,
-        metrics.uptime.map { "up \(Format.duration($0))" },
+        metrics.uptime.map { "up \(Format.duration($0, width: .wide))" },
         reading.rates.cpuFraction.map { "CPU \(Format.percent($0))" },
         metrics.memoryFraction.map { "memory \(Format.percent($0))" },
         metrics.fullestGPU?.vramFraction.map { "VRAM \(Format.percent($0))" },
@@ -235,10 +238,10 @@ private enum HomelabText {
     seconds.map { "up \(Format.duration($0))" } ?? "—"
   }
 
-  static func lastSeen(_ lastSeen: Double?) -> String {
+  static func lastSeen(_ lastSeen: Double?, width: Duration.UnitsFormatStyle.UnitWidth) -> String {
     guard let lastSeen else { return "never reached" }
     let elapsed = -Date(timeIntervalSince1970: lastSeen).timeIntervalSinceNow
-    return "last seen \(Format.duration(elapsed)) ago"
+    return "last seen \(Format.duration(elapsed, width: width)) ago"
   }
 
   static func details(_ reading: ServerReading) -> [String] {

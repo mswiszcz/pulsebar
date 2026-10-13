@@ -30,9 +30,11 @@ enum Format {
     duration(Date.now.timeIntervalSince(start))
   }
 
-  static func duration(_ seconds: Double) -> String {
+  static func duration(_ seconds: Double, width: Duration.UnitsFormatStyle.UnitWidth = .narrow)
+    -> String
+  {
     Duration.seconds(max(seconds, 0)).formatted(
-      .units(allowed: [.days, .hours, .minutes, .seconds], width: .narrow, maximumUnitCount: 1))
+      .units(allowed: [.days, .hours, .minutes, .seconds], width: width, maximumUnitCount: 1))
   }
 
   static func disk(_ value: Int64) -> String {

@@ -44,6 +44,7 @@ public actor HomelabMonitor {
         group.addTask { (server.id, await self.fetch(server.url)) }
       }
       for await (id, result) in group {
+        guard !Task.isCancelled else { continue }
         trackers[id]?.record(result, at: time)
       }
     }
