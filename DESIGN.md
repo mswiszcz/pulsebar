@@ -47,7 +47,7 @@ spacing:
   panel: "14px"
 components:
   popover:
-    width: "340px"
+    width: "425px"
     padding: "{spacing.panel}"
   track-row:
     height: "40px"
@@ -76,7 +76,7 @@ components:
 
 **Creative North Star: "The Shared Axis"**
 
-One 340 pt panel, read top to bottom as a verdict, then a timeline, then the culprits. Every metric is a track on the same 5-minute axis, so a spike in one lines up with the others. The world is native macOS and nothing else: SF Pro, monospaced digits, semantic system colors, SF Symbols, AppKit separators. Depth, chrome and decoration are left to the system window.
+One 425 pt panel, read top to bottom as a verdict, then a timeline, then the culprits. Every metric is a track on the same 5-minute axis, so a spike in one lines up with the others. The world is native macOS and nothing else: SF Pro, monospaced digits, semantic system colors, SF Symbols, AppKit separators. Depth, chrome and decoration are left to the system window.
 
 Density is high but quiet. Color is spent only on data: one accent per track, and the pressure color wherever pressure is shown. All chrome is gray.
 
@@ -134,7 +134,7 @@ Semantic system colors only. Hex values are the light-appearance `NSColor` resol
 
 ## Layout
 
-Single fixed column, 340 pt wide, 14 pt padding, no scrolling. Vertical rhythm: 12 pt between sections, 8 pt inside the header group, 6 pt between tracks, 2 pt between app rows, 3 pt micro gaps.
+Single fixed column, 425 pt wide, 14 pt padding, no scrolling. Vertical rhythm: 12 pt between sections, 8 pt inside the header group, 6 pt between tracks, 2 pt between app rows, 3 pt micro gaps.
 
 Every track row is three columns: label (50 pt, leading), graph (flexible), value (84 pt, trailing), 8 pt gutters, 40 pt tall. The time ruler ("5 min" … "now") reuses the same column widths so it sits under the graphs. Minute ticks fall at 1–4 minutes ago (every 30 samples of a 150-sample buffer). History fills from the right; before 5 minutes elapse, the left of the plot is empty grid.
 

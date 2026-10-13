@@ -62,7 +62,7 @@ struct PopoverView: View {
       }
     }
     .padding(14)
-    .frame(width: 340)
+    .frame(width: 425)
     .transaction { $0.disablesAnimations = true }
     .onAppear { onVisibilityChange(true) }
     .onDisappear { onVisibilityChange(false) }
