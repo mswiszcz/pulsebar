@@ -127,11 +127,12 @@ final class ServerCardStack {
     window.isReleasedWhenClosed = false
     window.isOpaque = false
     window.backgroundColor = .clear
-    window.hasShadow = false
+    window.hasShadow = true
     window.acceptsMouseMovedEvents = true
     window.level = level
     window.contentView = hosting
     self.window = window
+    state.surface = panelWindow.map(DeckSurface.init(panel:)) ?? DeckSurface()
     height = layoutHeight(open: state.open).height
     panelWindow?.addChildWindow(window, ordered: .below)
     place()
@@ -160,6 +161,7 @@ final class ServerCardStack {
     guard let panelWindow, let window else { return }
     window.setFrame(
       CardDeck.windowFrame(panelFrame: panelWindow.frame, height: height), display: true)
+    window.invalidateShadow()
   }
 
   private func fit() {

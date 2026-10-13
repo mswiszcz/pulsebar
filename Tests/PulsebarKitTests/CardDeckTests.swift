@@ -5,10 +5,10 @@ import Testing
 struct CardDeckTests {
   private let panel = CGRect(x: 1000, y: 200, width: 425, height: 600)
 
-  @Test func windowIsCenteredUnderPanel() {
+  @Test func windowMatchesPanelWidth() {
     let frame = CardDeck.windowFrame(panelFrame: panel, height: 100)
-    #expect(frame.minX == 1008)
-    #expect(frame.width == 409)
+    #expect(frame.minX == panel.minX)
+    #expect(frame.width == panel.width)
     #expect(frame.height == 100)
   }
 

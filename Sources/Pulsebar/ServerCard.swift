@@ -8,15 +8,60 @@ enum PanelLayout {
 }
 
 enum ServerCardLayout {
-  static let width = CardDeck.cardWidth(panelWidth: PanelLayout.width)
+  static let width = PanelLayout.width
   static let padding: CGFloat = 14
   static let deckSpace = "deck"
+}
+
+@MainActor
+struct DeckSurface {
+  var material = NSVisualEffectView.Material.popover
+  var blendingMode = NSVisualEffectView.BlendingMode.behindWindow
+  var isEmphasized = false
+  var cornerRadius = CardDeck.cornerRadius
+  var appearance: NSAppearance?
+
+  init() {}
+
+  init(panel window: NSWindow) {
+    let effect = window.contentView.flatMap { Self.effectView(in: $0.superview ?? $0) }
+    material = effect?.material ?? material
+    blendingMode = effect?.blendingMode ?? blendingMode
+    isEmphasized = effect?.isEmphasized ?? false
+    let radius = [effect?.layer, window.contentView?.superview?.layer]
+      .compactMap { $0?.cornerRadius }.first { $0 > 0 }
+    cornerRadius = radius ?? cornerRadius
+    appearance = window.effectiveAppearance
+  }
+
+  private static func effectView(in view: NSView) -> NSVisualEffectView? {
+    view as? NSVisualEffectView
+      ?? view.subviews.lazy.compactMap { effectView(in: $0) }.first
+  }
+}
+
+private struct EffectBackground: NSViewRepresentable {
+  let surface: DeckSurface
+
+  func makeNSView(context: Context) -> NSVisualEffectView {
+    let view = NSVisualEffectView()
+    view.state = .active
+    return view
+  }
+
+  func updateNSView(_ view: NSVisualEffectView, context: Context) {
+    view.material = surface.material
+    view.blendingMode = surface.blendingMode
+    view.isEmphasized = surface.isEmphasized
+    view.appearance = surface.appearance
+  }
 }
 
 @MainActor
 @Observable
 final class DeckState {
   var open: UUID?
+  var surface = DeckSurface()
   var detailsCap: CGFloat?
   @ObservationIgnored var frames: [UUID: CGRect] = [:]
 
@@ -44,7 +89,7 @@ struct ServerDeck: View {
       ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
         DeckCard(
           server: server, isFirst: index == 0, isOpen: state.open == server.id,
-          detailsCap: state.detailsCap,
+          detailsCap: state.detailsCap, surface: state.surface,
           frameChanged: { state.frames[server.id] = $0 }, toggle: { toggle(server.id) }
         )
         .zIndex(Double(servers.count - index))
@@ -62,11 +107,18 @@ private struct DeckCard: View {
   let isFirst: Bool
   let isOpen: Bool
   let detailsCap: CGFloat?
+  let surface: DeckSurface
   let frameChanged: (CGRect) -> Void
   let toggle: () -> Void
 
+  @Environment(\.colorScheme) private var colorScheme
+
   private var shape: RoundedRectangle {
-    RoundedRectangle(cornerRadius: CardDeck.cornerRadius, style: .continuous)
+    RoundedRectangle(cornerRadius: surface.cornerRadius, style: .continuous)
+  }
+
+  private var outline: Color {
+    colorScheme == .dark ? Color.white.opacity(0.15) : Color(nsColor: .separatorColor)
   }
 
   var body: some View {
@@ -79,9 +131,14 @@ private struct DeckCard: View {
           .transition(.opacity)
       }
     }
-    .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+    .background(EffectBackground(surface: surface))
     .clipShape(shape)
-    .overlay(shape.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 0.5))
+    .overlay(
+      shape.strokeBorder(outline, lineWidth: 1)
+        .mask(alignment: .bottom) {
+          Rectangle().padding(.top, isFirst ? 0 : CardDeck.tuck)
+        }
+    )
     .onGeometryChange(for: CGRect.self) {
       $0.frame(in: .named(ServerCardLayout.deckSpace))
     } action: {
