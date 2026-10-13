@@ -30,3 +30,8 @@ Spec: [[2026-10-13-homelab-servers-design]]. Integration branch: `feat/homelab-s
 
 - Test files must not `import Foundation` (toolchain lacks `_Testing_Foundation`); keep logic testable without it.
 - `swift test` needs `--disable-sandbox` and a run outside the Bash sandbox; use `--scratch-path $TMPDIR/<task>-build`.
+
+## Gate
+
+- `673eea1`: clean detached checkout, `swift build` 0 source warnings, 158 tests in 24 suites passed, `swift format lint --strict` clean, `plutil -lint` OK.
+- Known: server tracks span 290 s vs local 298 s, so minute ticks sit ~1.3 % apart.

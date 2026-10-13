@@ -1,7 +1,7 @@
 ---
 tags: [spec, pulsebar, homelab]
 date: 2026-10-13
-status: draft
+status: implemented
 ---
 
 # Homelab servers
