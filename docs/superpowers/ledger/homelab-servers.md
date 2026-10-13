@@ -21,9 +21,9 @@ Spec: [[2026-10-13-homelab-servers-design]]. Integration branch: `feat/homelab-s
 | T1 | PrometheusText + NodeMetrics + NodeRates + tests | — | merged | hs-t1 | 9e6319e | — |
 | T2 | ServerConfig/ServerURL + PollBackoff + tests | — | merged | hs-t2 | 8272d98 | — |
 | T4 | TrackGraph/TimelineAxis explicit sample interval, TrackRow height | — | dispatched | hs-t4 | — | await report |
-| T3 | HomelabMonitor actor + ServerTracker | T1, T2 | dispatched | hs-t3 | — | await report |
+| T3 | HomelabMonitor actor + ServerTracker | T1, T2 | merged | hs-t3 | b814303 | — |
 | T5 | Panel: StatsStore, PanelModel, HomelabList, PopoverView | T3, T4 | pending | — | — | — |
-| T6 | Settings Servers section, ServerSettings, Info.plist | T3 | pending | — | — | — |
+| T6 | Settings Servers section, ServerSettings, Info.plist | T3 | dispatched | hs-t6 | — | await report |
 | T7 | Docs: README, PRODUCT.md, design-contract | T5, T6 | pending | — | — | — |
 
 ## Pitfalls
