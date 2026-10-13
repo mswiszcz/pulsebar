@@ -19,23 +19,45 @@ struct MenuBarLabel: View {
   }
 }
 
-struct MenuBarReading: Sendable {
+struct MenuBarReading: Equatable, Sendable {
   let name: String
   let symbol: String
   let value: String
 }
 
+@MainActor
 enum MenuBarImage {
+  private struct Key: Equatable {
+    let pressure: PressureLevel?
+    let readings: [MenuBarReading]
+  }
+
   private static let height: CGFloat = 16
   private static let dotSize: CGFloat = 8
   private static let symbolGap: CGFloat = 3
   private static let readingGap: CGFloat = 8
   private static let widestValue = "100%"
 
+  private static var last: (key: Key, image: NSImage)?
+  private static var slotWidths: [String: CGFloat] = [:]
+
   static func make(pressure: PressureLevel?, readings: [MenuBarReading]) -> NSImage {
-    let slot = readings.map { reading in
-      glyph(reading.symbol, color: .black).size.width + symbolGap + measure(widestValue)
-    }
+    let key = Key(pressure: pressure, readings: readings)
+    if let last, last.key == key { return last.image }
+    let image = draw(pressure: pressure, readings: readings)
+    last = (key, image)
+    return image
+  }
+
+  private static func slotWidth(_ symbol: String) -> CGFloat {
+    if let width = slotWidths[symbol] { return width }
+    let width = glyph(symbol, color: .black).size.width + symbolGap + measure(widestValue)
+    slotWidths[symbol] = width
+    return width
+  }
+
+  private static func draw(pressure: PressureLevel?, readings: [MenuBarReading]) -> NSImage {
+    let slot = readings.map { slotWidth($0.symbol) }
     let width = dotSize + readingGap + slot.reduce(0, +) + readingGap * CGFloat(readings.count - 1)
     let dotColor = pressure?.nsColor ?? .tertiaryLabelColor
     let image = NSImage(size: NSSize(width: ceil(width), height: height), flipped: false) { _ in
