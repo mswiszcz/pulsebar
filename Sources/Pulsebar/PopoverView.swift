@@ -97,6 +97,7 @@ struct PopoverView: View {
       label: "Pressure",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: values, colors: samples.map { ($0.pressure ?? .normal).color })
       ),
       accessibilityValue: describe(
@@ -114,7 +115,9 @@ struct PopoverView: View {
     return TrackRow(
       label: "CPU",
       graph: TrackGraph(
-        capacity: history.capacity, above: TrackSeries(values: values, color: .blue)),
+        capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
+        above: TrackSeries(values: values, color: .blue)),
       accessibilityValue: describe(
         Format.percent(stats?.cpuFraction), range(values, Format.percent))
     ) {
@@ -136,6 +139,7 @@ struct PopoverView: View {
       label: "Disk",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: scaled.series[0], color: .orange),
         below: TrackSeries(values: scaled.series[1], color: .orange),
         scaleLabel: Format.rate(scaled.fullScale)),
@@ -162,6 +166,7 @@ struct PopoverView: View {
       label: "Network",
       graph: TrackGraph(
         capacity: history.capacity,
+        sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: scaled.series[0], color: .teal),
         below: TrackSeries(values: scaled.series[1], color: .teal),
         scaleLabel: Format.rate(scaled.fullScale)),
