@@ -12,8 +12,27 @@ private final class FirstMouseHostingView<Content: View>: NSHostingView<Content>
   override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
+private final class HoverBackgroundView: NSVisualEffectView {
+  var onHover: ((Bool) -> Void)?
+
+  override func updateTrackingAreas() {
+    trackingAreas.forEach(removeTrackingArea)
+    addTrackingArea(
+      NSTrackingArea(
+        rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
+    super.updateTrackingAreas()
+  }
+
+  override func mouseEntered(with event: NSEvent) { onHover?(true) }
+
+  override func mouseExited(with event: NSEvent) { onHover?(false) }
+}
+
 @MainActor
 final class ServerCardStack {
+  private static let collapseDelay: Duration = .milliseconds(150)
+  private static let animationDuration: TimeInterval = 0.18
+
   private struct Card {
     let window: CardPanel
     let hosting: NSHostingView<ServerCard>
@@ -24,7 +43,8 @@ final class ServerCardStack {
   private var isOpen = false
   private var cards: [UUID: Card] = [:]
   private var slots: [UUID] = []
-  private var front: UUID?
+  private var expanded: UUID?
+  private var collapseTask: Task<Void, Never>?
   private var isObserving = false
   private var resizeObserver: (any NSObjectProtocol)?
 
@@ -52,7 +72,8 @@ final class ServerCardStack {
   }
 
   private func tearDown() {
-    front = nil
+    collapseTask?.cancel()
+    expanded = nil
     slots = []
     for card in cards.values { discard(card) }
     cards = [:]
@@ -70,7 +91,7 @@ final class ServerCardStack {
     let servers = store.panel.servers.map(\.id)
     let isRestackNeeded = servers != slots
     slots = servers
-    if let front, !slots.contains(front) { self.front = nil }
+    if let expanded, !slots.contains(expanded) { self.expanded = nil }
     for id in cards.keys where !slots.contains(id) {
       discard(cards[id]!)
       cards[id] = nil
@@ -98,15 +119,16 @@ final class ServerCardStack {
 
   private func makeCard(_ id: UUID, level: NSWindow.Level) -> Card {
     let hosting = FirstMouseHostingView(
-      rootView: ServerCard(store: store, id: id) { [weak self] in self?.toggleFront(id) })
-    hosting.autoresizingMask = [.width, .height]
-    let background = NSVisualEffectView()
+      rootView: ServerCard(store: store, id: id) { [weak self] in self?.setExpanded(id) })
+    hosting.autoresizingMask = []
+    let background = HoverBackgroundView()
     background.material = .menu
     background.state = .active
     background.blendingMode = .behindWindow
     background.wantsLayer = true
-    background.layer?.cornerRadius = ServerCardLayout.cornerRadius
+    background.layer?.cornerRadius = CardDeck.cornerRadius
     background.layer?.masksToBounds = true
+    background.onHover = { [weak self] inside in self?.hoverChanged(id, inside: inside) }
     background.addSubview(hosting)
 
     let window = CardPanel(
@@ -123,24 +145,79 @@ final class ServerCardStack {
     return Card(window: window, hosting: hosting)
   }
 
-  private func layout() {
-    guard let panelWindow else { return }
-    let ordered = slots.compactMap { cards[$0] }
-    let sizes = ordered.map {
-      CGSize(width: ServerCardLayout.width, height: $0.hosting.fittingSize.height)
+  private func frames() -> [UUID: CGRect] {
+    guard let panelWindow else { return [:] }
+    let collapsed = CardDeck.collapsedFrames(panelFrame: panelWindow.frame, count: slots.count)
+    var result = Dictionary(uniqueKeysWithValues: zip(slots, collapsed))
+    if let expanded, let card = cards[expanded], let strip = result[expanded] {
+      result[expanded] = CardDeck.expandedFrame(
+        collapsed: strip, height: card.hosting.frame.height,
+        screenMaxY: panelWindow.screen?.visibleFrame.maxY ?? .greatestFiniteMagnitude)
     }
-    let frames = CardFan.frames(
-      panelFrame: panelWindow.frame, cardSizes: sizes,
-      screenMinX: panelWindow.screen?.visibleFrame.minX ?? -.greatestFiniteMagnitude)
-    for (card, frame) in zip(ordered, frames) where card.window.frame != frame {
-      card.window.setFrame(frame, display: true)
-      card.window.invalidateShadow()
+    return result
+  }
+
+  private func layout() {
+    for card in cards.values {
+      card.hosting.frame = CGRect(
+        origin: .zero,
+        size: CGSize(width: ServerCardLayout.width, height: card.hosting.fittingSize.height))
+    }
+    for (id, frame) in frames() {
+      guard let window = cards[id]?.window, window.frame != frame else { continue }
+      window.setFrame(frame, display: true)
+      window.invalidateShadow()
     }
   }
 
-  private func toggleFront(_ id: UUID) {
-    front = front == id ? nil : id
-    restack()
+  private func hoverChanged(_ id: UUID, inside: Bool) {
+    collapseTask?.cancel()
+    if inside {
+      setExpanded(id)
+    } else {
+      collapseTask = Task { [weak self] in
+        try? await Task.sleep(for: Self.collapseDelay)
+        guard !Task.isCancelled, self?.expanded == id else { return }
+        self?.setExpanded(nil)
+      }
+    }
+  }
+
+  private func setExpanded(_ id: UUID?) {
+    guard expanded != id else { return }
+    let previous = expanded
+    expanded = id
+    let isSwap = id != nil && previous != nil
+    if id != nil { restack() }
+    let targets = frames()
+    for target in [id, previous].compactMap({ $0 }) {
+      guard let window = cards[target]?.window, let frame = targets[target] else { continue }
+      move(window, to: frame, animated: target == id || !isSwap) { [weak self] in
+        if self?.expanded == nil { self?.restack() }
+      }
+    }
+  }
+
+  private func move(
+    _ window: CardPanel, to frame: CGRect, animated: Bool,
+    completion: @escaping @MainActor @Sendable () -> Void
+  ) {
+    guard animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+      window.setFrame(frame, display: true)
+      window.invalidateShadow()
+      completion()
+      return
+    }
+    NSAnimationContext.runAnimationGroup { context in
+      context.duration = Self.animationDuration
+      context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+      window.animator().setFrame(frame, display: true)
+    } completionHandler: {
+      MainActor.assumeIsolated {
+        window.invalidateShadow()
+        completion()
+      }
+    }
   }
 
   private func restack() {
@@ -148,10 +225,10 @@ final class ServerCardStack {
     for id in slots {
       if let card = cards[id] { panelWindow.removeChildWindow(card.window) }
     }
-    for id in slots.reversed() where id != front {
+    for id in slots.reversed() where id != expanded {
       if let card = cards[id] { panelWindow.addChildWindow(card.window, ordered: .below) }
     }
-    if let front, let card = cards[front] {
+    if let expanded, let card = cards[expanded] {
       panelWindow.addChildWindow(card.window, ordered: .above)
     }
   }

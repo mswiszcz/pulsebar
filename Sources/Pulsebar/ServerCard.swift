@@ -2,9 +2,12 @@ import AppKit
 import PulsebarKit
 import SwiftUI
 
+enum PanelLayout {
+  static let width: CGFloat = 425
+}
+
 enum ServerCardLayout {
-  static let width: CGFloat = 300
-  static let cornerRadius: CGFloat = 10
+  static let width = CardDeck.cardWidth(panelWidth: PanelLayout.width)
   static let padding: CGFloat = 14
 }
 
@@ -17,34 +20,33 @@ extension ServerSnapshot {
 struct ServerCard: View {
   let store: StatsStore
   let id: UUID
-  let select: () -> Void
+  let expand: () -> Void
 
   var body: some View {
     if let server = store.panel.servers.first(where: { $0.id == id }) {
-      ServerCardContent(server: server)
-        .padding(ServerCardLayout.padding)
-        .frame(width: ServerCardLayout.width, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture(perform: select)
-        .transaction { $0.disablesAnimations = true }
+      VStack(alignment: .leading, spacing: 0) {
+        ServerDetails(server: server)
+        Divider()
+        Glimpse(server: server)
+      }
+      .frame(width: ServerCardLayout.width, alignment: .leading)
+      .transaction { $0.disablesAnimations = true }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(HomelabText.spoken(server))
+      .accessibilityAction(named: "Show details", expand)
+      .accessibilityAction(named: "Open in browser") { server.openInBrowser() }
     }
   }
 }
 
-private struct ServerCardContent: View {
+extension ServerSnapshot {
+  fileprivate func openInBrowser() { NSWorkspace.shared.open(config.url) }
+}
+
+private struct Glimpse: View {
   let server: ServerSnapshot
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      header
-      content(for: server.state)
-      Button("Open in browser") { NSWorkspace.shared.open(server.config.url) }
-        .buttonStyle(.link)
-        .font(.subheadline)
-    }
-  }
-
-  private var header: some View {
     HStack(spacing: 6) {
       Circle()
         .fill(server.reading == nil ? Color.secondary : Color.green)
@@ -55,43 +57,68 @@ private struct ServerCardContent: View {
         .truncationMode(.middle)
         .layoutPriority(1)
       Spacer(minLength: 8)
-      Text(HomelabText.uptime(server.reading?.metrics.uptime))
+      trailing
+    }
+    .monospacedDigit()
+    .padding(.horizontal, ServerCardLayout.padding)
+    .frame(height: CardDeck.stripHeight)
+  }
+
+  @ViewBuilder private var trailing: some View {
+    switch server.state {
+    case .up(let reading):
+      let metrics = reading.metrics
+      HStack(spacing: 8) {
+        Figure(name: "CPU", fraction: reading.rates.cpuFraction)
+        Figure(name: "RAM", fraction: metrics.memoryFraction)
+        if let gpu = metrics.fullestGPU {
+          Figure(name: "VRAM", fraction: gpu.vramFraction)
+        }
+        Text(HomelabText.uptime(metrics.uptime))
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
+      }
+      .font(.caption)
+    case .unreachable(let lastSeen, _):
+      Text(
+        lastSeen == nil
+          ? "never reached"
+          : "unreachable · \(HomelabText.lastSeen(lastSeen, width: .abbreviated))"
+      )
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .lineLimit(1)
+    case .unknown:
+      Text("—")
         .font(.caption)
-        .monospacedDigit()
         .foregroundStyle(.secondary)
     }
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(HomelabText.spoken(server))
   }
+}
 
-  @ViewBuilder private func content(for state: ServerState) -> some View {
-    switch state {
-    case .up(let reading):
-      figures(reading)
-      HomelabTracks(reading: reading, history: server.history)
-      VStack(alignment: .leading, spacing: 2) {
-        ForEach(HomelabText.details(reading), id: \.self) { DetailNote(text: $0) }
-      }
-    case .unreachable(let lastSeen, let reason):
-      DetailNote(text: HomelabText.lastSeen(lastSeen, width: .abbreviated))
-      DetailNote(text: ServerTestResult.reason(reason, url: server.config.url))
-    case .unknown:
-      DetailNote(text: "Not checked yet")
-    }
-  }
+private struct ServerDetails: View {
+  let server: ServerSnapshot
 
-  private func figures(_ reading: ServerReading) -> some View {
-    let metrics = reading.metrics
-    return HStack(spacing: 10) {
-      Figure(name: "CPU", fraction: reading.rates.cpuFraction)
-      Figure(name: "RAM", fraction: metrics.memoryFraction)
-      if let gpu = metrics.fullestGPU {
-        Figure(name: "VRAM", fraction: gpu.vramFraction)
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      switch server.state {
+      case .up(let reading):
+        HomelabTracks(reading: reading, history: server.history)
+        VStack(alignment: .leading, spacing: 2) {
+          ForEach(HomelabText.details(reading), id: \.self) { DetailNote(text: $0) }
+        }
+      case .unreachable(_, let reason):
+        DetailNote(text: ServerTestResult.reason(reason, url: server.config.url))
+      case .unknown:
+        DetailNote(text: "Not checked yet")
       }
+      Button("Open in browser", action: server.openInBrowser)
+        .buttonStyle(.link)
+        .font(.subheadline)
     }
-    .font(.caption)
-    .monospacedDigit()
-    .accessibilityHidden(true)
+    .padding(.horizontal, ServerCardLayout.padding)
+    .padding(.top, ServerCardLayout.padding)
+    .padding(.bottom, 8)
   }
 }
 

@@ -66,7 +66,7 @@ struct PopoverView: View {
       }
     }
     .padding(14)
-    .frame(width: 425)
+    .frame(width: PanelLayout.width)
     .transaction { $0.disablesAnimations = true }
     .onAppear { onVisibilityChange(true) }
     .onDisappear { onVisibilityChange(false) }

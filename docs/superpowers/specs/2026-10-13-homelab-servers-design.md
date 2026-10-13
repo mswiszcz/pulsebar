@@ -146,16 +146,14 @@ Superseded: the first viewport has no Homelab section; see the revision below.
 
 ## Server cards (revision 2026-10-13)
 
-Each server is a **card**, a separate borderless window stacked behind the Pulsebar panel and fanned out to the left.
+Each server is a **card**, a separate borderless window hanging under the Pulsebar panel as a glimpse deck.
 
-- Cards are child windows of the `MenuBarExtra` panel (`NSPanel`, non-activating, never key), so they move with it and clicking one does not dismiss the panel. Level matches the panel; top edges align.
-- Card 0 sits directly behind the panel with half its width showing left of it. Each next card sits another half-width further left. Z-order: panel > card 0 > card 1 > …
-- Width 300 pt, height fits content. System `.menu` material, 10 pt corners, system shadow, 14 pt padding.
-- Content is the full server view: dot, name, uptime; CPU / RAM / VRAM figures; CPU, RAM, GPU, VRAM tracks on the shared 5-minute axis; detail lines; **Open in browser**. Unreachable servers show last seen and the reason. Dot, name and figures sit on the left, readable while the card is half covered.
-- Click a card to bring it in front of the panel and the others; click it again, or another card, to return it to its slot. Order resets when the panel closes.
-- Cards appear when the panel opens and go when it closes. No servers, no cards. They follow `panel.servers` live and are added or removed while the panel is open.
-- A card never starts left of the screen's visible frame; its x is clamped.
-- The pure placement function is `CardFan.frames` in `PulsebarKit`; window handling is `ServerCardStack`.
+- Cards are child windows of the `MenuBarExtra` panel (`NSPanel`, non-activating, never key), so they move with it and interacting with one does not dismiss the panel. Level matches the panel. They appear when the panel opens, go when it closes, and follow `panel.servers` live. No servers, no cards.
+- **Collapsed**: a 30 pt strip (dot, name, CPU %, RAM %, VRAM % when a GPU is present, uptime; or `unreachable · last seen …`; ≥90% orange). The window is strip + 10 pt corner radius; the top radius tucks behind the panel or the previous card. Width is panel width − 16 pt, centred. Card *n* sits one strip lower than card *n−1*. Z-order: panel > card 0 > card 1 > …
+- **Expanded** (hover): the card animates (0.18 s ease-out, none with Reduce Motion) to full size above the panel, bottom edge fixed at the strip's bottom, so it grows upward. Content is the full server view (tracks, details, **Open in browser**) above the glimpse strip. Clamped to the screen's `visibleFrame.maxY`.
+- Hover uses an `NSTrackingArea` (`.activeAlways`, `.inVisibleRect`) because the panels are never key. Mouse exit collapses after 150 ms; entering another card swaps at once.
+- Accessibility: one element per card with the old row label, plus actions **Show details** (expands) and **Open in browser**.
+- `CardDeck` in `PulsebarKit` holds the pure placement (collapsed frames, expanded frame with clamp); `ServerCardStack` owns the windows.
 
 ## Settings
 
