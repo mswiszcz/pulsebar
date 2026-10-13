@@ -41,7 +41,7 @@ Works with the Command Line Tools alone (no Xcode).
 > [!warning] Run tests through `make test`
 > With only the Command Line Tools installed, plain `swift test` builds the tests and then silently runs **zero** of them, because SwiftPM can't find `Testing.framework` on its own. `make test` passes the framework search path and rpath.
 
-Quit from the panel's **Quit** button (⌘Q while it is open). The gear button next to it opens Settings (⌘,), and the button left of the gear opens Activity Monitor (⌘M).
+The panel footer has three glyph buttons: Activity Monitor (⌘M), Settings (⌘,) and Quit (power symbol, ⌘Q while the panel is open).
 
 ## Settings
 

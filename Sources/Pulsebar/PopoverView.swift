@@ -60,9 +60,15 @@ struct PopoverView: View {
         .keyboardShortcut(",")
         .help("Settings")
         .accessibilityLabel("Settings")
-        Button("Quit") { NSApplication.shared.terminate(nil) }
-          .keyboardShortcut("q")
-          .controlSize(.small)
+        Button {
+          NSApplication.shared.terminate(nil)
+        } label: {
+          Image(systemName: "power")
+        }
+        .buttonStyle(.borderless)
+        .keyboardShortcut("q")
+        .help("Quit Pulsebar (⌘Q)")
+        .accessibilityLabel("Quit Pulsebar")
       }
     }
     .padding(14)

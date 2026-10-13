@@ -142,7 +142,7 @@ Single-direction tracks (Pressure, CPU) grow up from a bottom baseline. Two-way 
 
 Apps list: chevron (9 pt) · icon (16 pt) · name with "×N" process count · growth badge · memory (64 pt) · CPU (40 pt), right-aligned numeric columns, 6 pt row inset. Expanded detail lines are indented to the name column and share the memory and CPU columns.
 
-Footer: "Updated every 2 s" left; `waveform.path.ecg.rectangle` borderless button (Activity Monitor, ⌘M), `gearshape` borderless button (Settings, ⌘,) and small Quit button (⌘Q) right.
+Footer: "Updated every 2 s" left; `waveform.path.ecg.rectangle` borderless button (Activity Monitor, ⌘M), `gearshape` borderless button (Settings, ⌘,) and `power` borderless button (Quit, ⌘Q) right.
 
 ## Elevation & Depth
 
@@ -190,7 +190,7 @@ SwiftUI `Settings` scene, `Form` with `.formStyle(.grouped)`, 420 pt wide, heigh
 Pressure dot (non-template 8 pt image, keeps its color), `memorychip` SF Symbol, memory %, `cpu` SF Symbol, CPU %. Symbols render monochrome (menu bar template tint); padding sits before each symbol. Whole percent, figure-space padded, tabular digits.
 
 ### Buttons
-System Quit button (`.controlSize(.small)`), borderless `gearshape` Settings button, link-style "Open in Activity Monitor". No custom button styling.
+Borderless glyph buttons in the footer (`waveform.path.ecg.rectangle` Activity Monitor, `gearshape` Settings, `power` Quit), link-style "Open in Activity Monitor". No custom button styling.
 
 ## Do's and Don'ts
 
