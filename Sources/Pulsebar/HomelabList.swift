@@ -158,6 +158,8 @@ private struct MetricColumn: View {
       Text("\(name) \(Format.percent(fraction))")
         .fontWeight(hot ? .semibold : nil)
         .foregroundStyle(hot ? Color.orange : Color.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
         .frame(width: width, alignment: .trailing)
     }
   }
