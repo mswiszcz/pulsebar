@@ -12,7 +12,9 @@ struct PulsebarApp: App {
 
   var body: some Scene {
     MenuBarExtra {
-      PopoverView(model: store.panel, expandedApp: $store.expandedApp) {
+      PopoverView(
+        model: store.panel, expandedApp: $store.expandedApp, expandedServer: $store.expandedServer
+      ) {
         store.isPopoverOpen = $0
       }
     } label: {

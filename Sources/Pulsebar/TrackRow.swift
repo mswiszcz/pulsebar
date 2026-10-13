@@ -51,6 +51,18 @@ struct TrackRow<Value: View>: View {
   }
 }
 
+enum TrackDescription {
+  static func describe(_ current: String, _ window: String) -> String {
+    "\(current), 5-minute range \(window)"
+  }
+
+  static func range(_ values: [Double?], _ format: (Double?) -> String) -> String {
+    let known = values.compactMap { $0 }
+    guard let low = known.min(), let high = known.max() else { return "not available yet" }
+    return "\(format(low))–\(format(high))"
+  }
+}
+
 struct DirectionalValue: View {
   let marker: Text
   let text: String

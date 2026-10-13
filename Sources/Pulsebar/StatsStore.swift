@@ -13,21 +13,28 @@ final class StatsStore {
 
   private(set) var panel = PanelModel()
   var expandedApp: AppIdentity?
+  var expandedServer: UUID?
   var isPopoverOpen = false {
     didSet {
       guard isPopoverOpen, !oldValue else { return }
       Task { await refreshDetails() }
       Task { await refreshDockerIfStale() }
+      if !configuredServers.isEmpty {
+        Task { await refreshStaleHomelab() }
+      }
     }
   }
 
   @ObservationIgnored private let collector = StatsCollector()
   @ObservationIgnored private let dockerMonitor = DockerMonitor()
+  @ObservationIgnored private let homelab = HomelabMonitor()
   @ObservationIgnored private let notifier = PressureNotifier()
   @ObservationIgnored private var snapshots = RingBuffer<[AppIdentity: UInt64]>(capacity: 20)
   @ObservationIgnored private var lastSnapshot: Double?
   @ObservationIgnored private var lastDockerPoll: Double?
   @ObservationIgnored private var alarm = PressureAlarm()
+  @ObservationIgnored private var homelabTask: Task<Void, Never>?
+  @ObservationIgnored private var configuredServers: [ServerConfig] = []
 
   var stats: Stats? { panel.stats }
 
@@ -37,6 +44,12 @@ final class StatsStore {
     }
     Task { await run() }
     Task { await pollDocker() }
+    startHomelab()
+    NotificationCenter.default.addObserver(
+      forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      MainActor.assumeIsolated { self?.restartHomelabIfChanged() }
+    }
     Task { if AlertSettings.isEnabled { await notifier.requestAuthorizationIfNeeded() } }
   }
 
@@ -102,5 +115,34 @@ final class StatsStore {
     guard lastDockerPoll.map({ now - $0 >= Self.dockerInterval }) ?? true else { return }
     lastDockerPoll = now
     panel.docker = await dockerMonitor.sample()
+  }
+
+  private func refreshStaleHomelab() async {
+    panel.servers = await homelab.poll(at: Date().timeIntervalSince1970, staleOnly: true)
+  }
+
+  private func startHomelab() {
+    homelabTask?.cancel()
+    let servers = ServerSettings.load()
+    configuredServers = servers
+    homelabTask = Task { await runHomelab(servers) }
+  }
+
+  private func restartHomelabIfChanged() {
+    guard ServerSettings.load() != configuredServers else { return }
+    startHomelab()
+  }
+
+  private func runHomelab(_ servers: [ServerConfig]) async {
+    await homelab.configure(servers)
+    guard !servers.isEmpty else {
+      panel.servers = []
+      return
+    }
+    while !Task.isCancelled {
+      panel.servers = await homelab.poll(at: Date().timeIntervalSince1970, staleOnly: false)
+      let delay = await homelab.secondsUntilNextPoll(at: Date().timeIntervalSince1970)
+      try? await Task.sleep(for: .seconds(delay), tolerance: .seconds(1))
+    }
   }
 }

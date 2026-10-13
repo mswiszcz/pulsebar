@@ -4,6 +4,7 @@ import SwiftUI
 struct PopoverView: View {
   let model: PanelModel
   @Binding var expandedApp: AppIdentity?
+  @Binding var expandedServer: UUID?
   var onVisibilityChange: (Bool) -> Void = { _ in }
 
   @Environment(\.openSettings) private var openSettings
@@ -37,6 +38,10 @@ struct PopoverView: View {
         AppsList(
           apps: apps, details: stats?.processes.details ?? [:], growth: model.growth,
           growthMinutes: model.growthMinutes, docker: model.docker, expanded: $expandedApp)
+      }
+      if !model.servers.isEmpty {
+        Divider()
+        HomelabList(servers: model.servers, expanded: $expandedServer)
       }
       Divider()
       HStack {
@@ -100,8 +105,8 @@ struct PopoverView: View {
         sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: values, colors: samples.map { ($0.pressure ?? .normal).color })
       ),
-      accessibilityValue: describe(
-        Format.percent(values.last ?? nil), range(values, Format.percent))
+      accessibilityValue: TrackDescription.describe(
+        Format.percent(values.last ?? nil), TrackDescription.range(values, Format.percent))
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         Text(Format.percent(values.last ?? nil))
@@ -118,8 +123,8 @@ struct PopoverView: View {
         capacity: history.capacity,
         sampleInterval: TimelineAxis.sampleInterval,
         above: TrackSeries(values: values, color: .blue)),
-      accessibilityValue: describe(
-        Format.percent(stats?.cpuFraction), range(values, Format.percent))
+      accessibilityValue: TrackDescription.describe(
+        Format.percent(stats?.cpuFraction), TrackDescription.range(values, Format.percent))
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         Text(Format.percent(stats?.cpuFraction))
@@ -134,7 +139,8 @@ struct PopoverView: View {
     let scaled = TrackScale.squareRootNormalized([reads, writes], floor: Self.diskFloor)
     let current =
       "read \(Format.rate(stats?.disk.readRate)), write \(Format.rate(stats?.disk.writeRate))"
-    let window = "read \(range(reads, Format.rate)), write \(range(writes, Format.rate))"
+    let window =
+      "read \(TrackDescription.range(reads, Format.rate)), write \(TrackDescription.range(writes, Format.rate))"
     return TrackRow(
       label: "Disk",
       graph: TrackGraph(
@@ -143,7 +149,7 @@ struct PopoverView: View {
         above: TrackSeries(values: scaled.series[0], color: .orange),
         below: TrackSeries(values: scaled.series[1], color: .orange),
         scaleLabel: Format.rate(scaled.fullScale)),
-      accessibilityValue: describe(current, window)
+      accessibilityValue: TrackDescription.describe(current, window)
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         DirectionalValue(marker: Text("R"), text: Format.rate(stats?.disk.readRate))
@@ -161,7 +167,8 @@ struct PopoverView: View {
     let scaled = TrackScale.squareRootNormalized([downs, ups], floor: Self.networkFloor)
     let current =
       "down \(Format.rate(stats?.network.downRate)), up \(Format.rate(stats?.network.upRate))"
-    let window = "down \(range(downs, Format.rate)), up \(range(ups, Format.rate))"
+    let window =
+      "down \(TrackDescription.range(downs, Format.rate)), up \(TrackDescription.range(ups, Format.rate))"
     return TrackRow(
       label: "Network",
       graph: TrackGraph(
@@ -170,7 +177,7 @@ struct PopoverView: View {
         above: TrackSeries(values: scaled.series[0], color: .teal),
         below: TrackSeries(values: scaled.series[1], color: .teal),
         scaleLabel: Format.rate(scaled.fullScale)),
-      accessibilityValue: describe(current, window)
+      accessibilityValue: TrackDescription.describe(current, window)
     ) {
       VStack(alignment: .trailing, spacing: 0) {
         DirectionalValue(
@@ -179,15 +186,5 @@ struct PopoverView: View {
           marker: Text(Image(systemName: "arrow.up")), text: Format.rate(stats?.network.upRate))
       }
     }
-  }
-
-  private func describe(_ current: String, _ window: String) -> String {
-    "\(current), 5-minute range \(window)"
-  }
-
-  private func range(_ values: [Double?], _ format: (Double?) -> String) -> String {
-    let known = values.compactMap { $0 }
-    guard let low = known.min(), let high = known.max() else { return "not available yet" }
-    return "\(format(low))–\(format(high))"
   }
 }

@@ -27,7 +27,11 @@ enum Format {
   }
 
   static func uptime(since start: Date) -> String {
-    Duration.seconds(max(Date.now.timeIntervalSince(start), 0)).formatted(
+    duration(Date.now.timeIntervalSince(start))
+  }
+
+  static func duration(_ seconds: Double) -> String {
+    Duration.seconds(max(seconds, 0)).formatted(
       .units(allowed: [.days, .hours, .minutes, .seconds], width: .narrow, maximumUnitCount: 1))
   }
 
