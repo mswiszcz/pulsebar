@@ -6,6 +6,7 @@ import PulsebarKit
 @Observable
 final class StatsStore {
   private static let sampleInterval: Duration = .seconds(2)
+  private static let sampleTolerance: Duration = .milliseconds(250)
   private static let snapshotInterval = 30.0
   private static let dockerInterval = 15.0
   private static let growthThreshold: UInt64 = 500 * 1_048_576
@@ -14,7 +15,9 @@ final class StatsStore {
   var expandedApp: AppIdentity?
   var isPopoverOpen = false {
     didSet {
-      if isPopoverOpen, !oldValue { Task { await refreshDetails() } }
+      guard isPopoverOpen, !oldValue else { return }
+      Task { await refreshDetails() }
+      Task { await refreshDockerIfStale() }
     }
   }
 
@@ -49,7 +52,7 @@ final class StatsStore {
       panel.history.append(HistorySample(sample))
       recordSnapshot(sample, at: now)
       checkPressure(sample, at: now)
-      try? await Task.sleep(for: Self.sampleInterval)
+      try? await Task.sleep(for: Self.sampleInterval, tolerance: Self.sampleTolerance)
     }
   }
 
@@ -81,13 +84,17 @@ final class StatsStore {
 
   private func pollDocker() async {
     while !Task.isCancelled {
-      let now = ProcessInfo.processInfo.systemUptime
-      let wanted = isPopoverOpen || panel.stats?.apps.contains { $0.app.isDocker } == true
-      if wanted, lastDockerPoll.map({ now - $0 >= Self.dockerInterval }) ?? true {
-        lastDockerPoll = now
-        panel.docker = await dockerMonitor.sample()
+      if isPopoverOpen || panel.stats?.apps.contains(where: { $0.app.isDocker }) == true {
+        await refreshDockerIfStale()
       }
-      try? await Task.sleep(for: .seconds(1))
+      try? await Task.sleep(for: .seconds(Self.dockerInterval), tolerance: .seconds(1))
     }
+  }
+
+  private func refreshDockerIfStale() async {
+    let now = ProcessInfo.processInfo.systemUptime
+    guard lastDockerPoll.map({ now - $0 >= Self.dockerInterval }) ?? true else { return }
+    lastDockerPoll = now
+    panel.docker = await dockerMonitor.sample()
   }
 }

@@ -142,7 +142,7 @@ Docker's row lists running containers with memory and CPU, read from the Docker 
 
 - **Memory** is `usage − inactive_file` (`total_inactive_file` on cgroup v1), the same number as `docker stats`.
 - **CPU** is the change in container CPU time between two polls, as a share of all host cores like the app rows. `docker stats` shows the same value as a percentage of one core.
-- Polled every 15 s, on its own task, only while the panel is open or Docker is a top app. If the socket doesn't answer, the row says "Docker not reachable".
+- Polled every 15 s, on its own task, only while the panel is open or Docker is a top app. Opening the panel polls right away when the last poll is older than 15 s. If the socket doesn't answer, the row says "Docker not reachable".
 
 ## Pressure alerts
 
